@@ -1,0 +1,24 @@
+{
+  "name": "jwgl",
+  "version": "1.0.0",
+  "description": "Helpfull library for deal with webgl",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jorjsmile/jwgl.git"
+  },
+  "keywords": [
+    "webgl",
+    "javascript",
+    "js"
+  ],
+  "author": "George Katernyak",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jorjsmile/jwgl/issues"
+  },
+  "homepage": "https://github.com/jorjsmile/jwgl#readme"
+}
