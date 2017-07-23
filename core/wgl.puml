@@ -1,0 +1,22 @@
+@startuml
+interface WGLObject{
+    -_events = Object;
+    +addListener(String name, Function func, Object object);
+    +getEvent(String name);
+    +raiseEvent();
+    +sync();
+    +raiseSyncEvent();
+    +assignModules(Object list);
+}
+interface WGLModule{
+    -options = Object;
+    -object = Object;
+    +getOptions();
+    +getObject();
+    +listenObject();
+}
+WGLObject <|-- WGLModule
+WGLObject <|-- wgl  
+WGLObject <|-- render  
+WGLObject <|-- shaders  
+@enduml

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <!--script type="text/javascript" src="../lib/js/jquery-1.7.js"></script-->
+        <script type="text/javascript" src="../lib/js/glMatrix-0.9.5.min.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/wglobject.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/matrix.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/common.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/shaders.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/render.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/jwgl.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/primitives.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/modules/rotate.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/modules/zoom.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/modules/light.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/modules/texture.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/modules/parser.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/modules/parsers/daeFormat.js"></script>
+        <script type="text/javascript" >
+            var wgl = null;
+            function run (){
+                wgl = new jWGL("jwgl", {
+                    programs : {
+                        "main" : {
+                            name : "Main",
+                            shaders : {
+                                vertex : ComplexVertexShader,
+                                fragment : ComplexFragmentShader
+                            }
+                        }
+                    },
+                    data : [                       
+                    ],
+                    render : {
+                        "main":{
+                            class : Render,
+                            programIndex : "main"                        
+                        }
+                    }
+                });
+//                wgl.initDebug();/**/
+                wgl.assignModules([
+                                   Zoom,
+                                   Rotate, 
+                                   Light, 
+//                                   Texture,
+                                   {class : Parser, displayHistory : true }
+                               ]);
+
+                wgl.init();
+            }
+        </script>
+        <style type="text/css">
+            #jwgl{
+                border:1px solid #000;
+                margin: 20px;
+                width : 450px;
+                height: 450px;
+            }
+        </style>
+    </head>
+    
+    <body onload="run()">
+        <canvas id="jwgl" width="450" height="450" tabindex="-1"></canvas>
+    </body>
+</html>

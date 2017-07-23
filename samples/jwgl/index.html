@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <!--script type="text/javascript" src="../lib/js/jquery-1.7.js"></script-->
+        <script type="text/javascript" src="../lib/js/glMatrix-0.9.5.min.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/wglobject.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/matrix.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/common.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/shaders.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/render.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/jwgl.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/primitives.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/modules/rotate.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/modules/zoom.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/modules/light.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/modules/texture.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/modules/control.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/modules/snapshot.js"></script>
+        <script type="text/javascript" src="../lib/jwgl/modules/shadow.js"></script>
+        <script type="text/javascript" >
+            var wgl;
+            function main (){
+                console.log(1);
+                wgl = new jWGL("jwgl", {
+                    programs : {
+                        "main" : {
+                            name : "Main",
+                            shaders : {
+                                vertex : ComplexVertexShader,
+                                fragment : ComplexFragmentShader
+                            }
+                        }
+                    },
+                    render : {
+                        "main":{
+                            class : Render,
+                            programIndex : "main",
+//                            loop : false
+                        }
+                    },
+                    data : [
+                        new Cube( 1, {
+                            translate : [-2, .0, .0],
+                            texture : [
+                                {
+                                    url : "gradient.png"
+                                },
+                                {
+                                    url : "webgl.png"
+                                }
+                            ],
+                            material : {
+                                diffuse : [1.,1.,1.]
+                            }
+
+                        } ),
+                        new Sphere(1, 10, 10, {
+                            translate : [2, .0, .0]
+                        }),
+                        new Cylinder(10, .1, 1, 10, {
+                            translate : [.0, -2, .0],
+                            moduleRotate : false,
+                            moduleControl : false,
+                            material : {
+//                                ambient : [.8, .8, .8],
+//                                diffuse : [.8, .8, .8],
+//                                specular : [.5, .5, .5],
+//                                shininnes :
+
+                            }
+                        })
+                    ]
+                });
+//                wgl.initDebug();
+                wgl.assignModules([
+//                                   { class : Zoom, programs : ["main", "control"]},
+                                   Rotate, 
+                                    { "class": Light,
+                                        lights: [{
+                                            ambient : [.9,.9,.9],
+                                            diffuse : [.9, .9, .9],
+                                            specular : [.5, .5, .5]
+                                        }]
+                                    },
+                                   Texture,
+//                                   { class : Control, translate : true, translateTrigger :  "translate"},
+//                                   { class : Snapshot, program : ["main", "control", "shadow"]},
+//                                   Shadow
+                               ]);
+
+                wgl.init();
+//                wgl.initDebug();
+            }
+        </script>   
+        <style type="text/css">
+            #jwgl{
+                border:1px solid #000;
+                margin: 20px;
+                width : 450px;
+                height: 450px;
+            }
+        </style>
+    </head>
+    
+    <body onload="main()">
+        <canvas id="jwgl" width="450" height="450" tabindex="-1"></canvas>
+        <label for="translate">Translate</label><input type="checkbox" id="translate" value="0"/>
+    </body>
+</html>
