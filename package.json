@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/jorjsmile/jwgl/issues"
   },
-  "homepage": "https://github.com/jorjsmile/jwgl#readme"
+  "homepage": "https://github.com/jorjsmile/jwgl#readme",
+  "dependencies": {
+    "gl-matrix": "git+https://github.com/toji/gl-matrix.git"
+  }
 }
