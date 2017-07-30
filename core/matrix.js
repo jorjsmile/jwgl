@@ -1,3 +1,11 @@
+/**
+ * Note it's a simple wrapper for gl-matrix library
+ * It brings event system to gl-matrix, so u can snap matrix manipulation
+ *
+ * @param options
+ * @constructor
+ */
+
 function Matrix( options ){
     WGLObject.call(this, options);
     var o = options || {},
@@ -44,7 +52,7 @@ function Matrix( options ){
         this.raiseEvent("beforeManipulate");
         var args = Array.prototype.slice.call(arguments);
         args.shift(); // remove name of the function
-        args.push(m);
+        args.unshift(m);
         mat4[event].apply(this, args);
 //        console.log(m);
         this.raiseEvent("afterManipulate", m);

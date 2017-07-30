@@ -1,7 +1,19 @@
-/* 
+/**
  * Module will control texture for scene objects,
- * Use complex shaders for case if you want that module
- * insert shaders variables
+ * Use complex shaders for case if you want that module work properly,
+ *  it will automatically insert shaders variables.
+ *
+ *  @example
+ *  //in data section
+ *  data: [
+ *      new Shape({
+ *           "texture": {
+ *                   url : "path/to/your/texture.png"
+ *               }
+ *      })
+ *  ]
+ *
+ *  @events beforeLoadTexture,afterLoadTexture
  */
 
 function Texture(options){
@@ -55,18 +67,21 @@ Texture.prototype.eventAfterInitRenderData = function(object, callback){
         
     for(var o in object.data){
         if(object.data[o].texture === undefined) continue;
-        this._maxTexCount = this._maxTexCount > object.data[o].texture.length?
-                            this._maxTexCount :
-                            object.data[o].texture.length;
 
         if(typeof(object.data[o].texture.push) !== "function")
             object.data[o].texture = [object.data[o].texture];
-        for(var t in object.data[o].texture)
-            (function(i, j){                
-                syncStack.push(function(__self, syncOut){
-                     loadTexture(i, object.data[i].texture[j], syncOut );
-                });
-            })(o, t);
+        for(var t in object.data[o].texture){
+                (function(i, j){
+                    var src = object.data[i].texture[j];
+
+                        syncStack.push(function(__self, syncOut){
+                            if(_this.raiseEvent("beforeLoadTexture", i, src, syncOut) )
+                                loadTexture(i, src, syncOut );
+                        });
+
+                    _this.raiseEvent("afterLoadTexture", i, src)
+                })(o, t);
+        }
     }
     if(syncStack.length !== 0){
         this.sync(syncStack, callback);
@@ -77,8 +92,19 @@ Texture.prototype.eventAfterInitRenderData = function(object, callback){
 
 };
 
+Texture.prototype.initMaxTexCount = function(object) {
+    var data = object.getOptions().data;
+    for(var o in data ) {
+        if (data[o].texture === undefined) continue;
+        this._maxTexCount = this._maxTexCount > data[o].texture.length ?
+            this._maxTexCount :
+            data[o].texture.length;
+    }
+};
 
 Texture.prototype.eventAfterInitRenders = function(object){
+    if(this._maxTexCount == 0) return ;
+
     var renders = object.getRender(),
         programNames = this.getProgramNames();
         
@@ -90,6 +116,8 @@ Texture.prototype.eventAfterInitRenders = function(object){
 };
 
 Texture.prototype.eventAfterInitRenderElement = function(object, data){
+    if(this._maxTexCount == 0) return ;
+
 //    if(!inArray(this.getProgramNames(), object.getConfig().programName)) return;
     data.textures = object.registerBuffer(new Float32Array(data.textures), object.gl.ARRAY_BUFFER);    
 };
@@ -115,6 +143,9 @@ Texture.prototype.beforeProcessElement = function(object, data){
         vertex = object.getVShader();
     for(var t=0; t < this._maxTexCount; t++)
     {
+        if( !this.raiseEvent("beforeApplyTexture", t, data.texture[t]) )
+            continue;
+
         if(data.texture!==undefined && data.texture[t] !== undefined ){
             gl.uniform1i(fragment.textureLoaded[t], 1);
             gl.uniform1i(fragment.textureSource[t], t );
@@ -129,6 +160,7 @@ Texture.prototype.beforeProcessElement = function(object, data){
             // gl.uniform1i(fragment.textureLoaded[t], 0);
         }
         object.textureCount ++;
+        this.raiseEvent("afterApplyTexture", t, data.texture[t]);
     }
 
     if(data.texturesPerItem !== 0){
@@ -167,9 +199,9 @@ Texture.prototype.initDefaultTexture = function(gl){
     return this._default = object;
 };
 
-Texture.prototype.initTexture = function(gl, image){
+Texture.prototype.initTexture = function(gl, image, texture){
     
-    var object = gl.createTexture();
+    var object = texture || gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, object);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
@@ -190,6 +222,12 @@ Texture.prototype.initTexture = function(gl, image){
 };
 
 Texture.prototype.eventBeforeLoadShaders = function(object, programName, vertex, fragment){
+
+    this.initMaxTexCount(object);
+
+    if(this._maxTexCount == 0) return ;
+
+
     if(!inArray(this.getProgramNames(), programName)) return;
 
     this.setVertexVariables(vertex);
@@ -214,36 +252,18 @@ Texture.prototype.setFragmentVariables = function(shader){
     shader.setDefines("MAX_TEXTURES", this.getPerObject());
     shader.setVariable("vTexture", {location:"varying", type:"vec2"});
     shader.setVariable("textureSource", {location:"uniform", type:"sampler2D", array: "MAX_TEXTURES"});
-    // if(this.getObject().glVersion === "webgl2" ){
-    //     var _default =
-    //         "bool["+this.getPerObject()+"]("+
-    //         ([].fill(0,0,this.getPerObject()).join(",")) + ")";
-        shader.setVariable("textureLoaded", {location:"uniform", type:"int", array: "MAX_TEXTURES"/*, defaultValue: _default*/});
-    // }
-    // else{
-    //     for(var i = 0; i < this.getPerObject(); i++)
-    //         shader.setVariable(new Expression("textureLoaded"));
-    // }
+    shader.setVariable("textureLoaded", {location:"uniform", type:"int", array: "MAX_TEXTURES"});
 
-    // shader.setVariable("__textureLoaded",new Expression(
-    //     "textureLoaded[0] = 0;\n\
-    //      textureLoaded[1] = 0;\n"
-    // ));
     var mainFunc = shader.getFunctions()["main"],
         mM = this.getMixingMethod(),
         start = mM == "*"? "vec4(1.0, 1.0, 1.0, 1.0)" : "vec4(.0, .0, .0, .0)";
     mainFunc.expressions = mainFunc.expressions || [];
     mainFunc.expressions.push("\
                             vec4 textureAmount = "+start+";\n\
-                            //int textureAppsent = 0;\n\
                             \
                             for(int i = 0; i < MAX_TEXTURES; i++)\n\
                                 if(textureLoaded[i] == 1)\n\
                                     textureAmount "+mM+"=  texture2D(textureSource[i], vTexture);\n\
-                                //else{\n\
-                                //   textureAppsent ++;\n\
-                                // }\n\
-                                //if(textureAppsent == MAX_TEXTURES) textureAmount = vec4(1.0, 1.0, 1.0, 1.0);\n\
             ");
     shader.setColorExpression("textureAmount");
 }

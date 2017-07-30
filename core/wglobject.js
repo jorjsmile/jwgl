@@ -22,16 +22,24 @@ function WGLObject(o) {
             this.addListener(e, o.events[e], o.object);
         }
     }
+
+    if(o.modules !== undefined)
+        this.assignModules(o.modules);
+
 }
 
 WGLObject.prototype.raiseEvent = function() {
     var args = Array.prototype.slice.call(arguments),
-        functions = this.getEvent(args.shift()) || [];
+        functions = this.getEvent(args.shift()) || [],
+        result = true;
+
     args.unshift(this);
     for (var e in functions) {
         if (typeof(functions[e].func) === "function")
-            functions[e].func.apply(functions[e].obj, args);
+            result &= functions[e].func.apply(functions[e].obj, args);
     }
+
+    return result;
 };
 /**
  * 
@@ -82,7 +90,7 @@ WGLObject.prototype.assignModules = function(list){
         if(typeof(list[m]) === "object"){
             className = list[m].class;
             options = extend(options, list[m]);
-        } 
+        }
         this._modules[m] = new className(options);
         this._modules[m].listenObject();
     }
@@ -93,13 +101,12 @@ WGLObject.prototype.getModuleByClass = function(className){
         if(this._modules[m] instanceof className) return this._modules[m];
     }
     return null;
-}
+};
 
 function WGLModule(options){
     WGLObject.call(this, options);
-    
-   
-    var options = this.getOptions(),
+
+    var options = options || {},
         object = options.object;
     
     this.getObject = function( ){ return object; };

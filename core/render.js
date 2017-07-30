@@ -49,7 +49,6 @@ Render.prototype.initWindow = function(w,h){
     var w = w || this.getWidth(),
         h = h || this.getHeight(),
         r = w/h;
-    
     var sceneView = this.getConfig().sceneView = this.getConfig().sceneView || {
         type :  "perspective", 
         angle : 60,
@@ -66,7 +65,8 @@ Render.prototype.initWindow = function(w,h){
 //        mat4.identity(this.projectionMatrix);
  
         if(sceneView.type === "perspective")
-            this.projectionMatrix.manipulate("perspective", sceneView.angle,r,sceneView.nearPlane,sceneView.farPlane);
+            this.projectionMatrix.manipulate("perspective", sceneView.angle, r,sceneView.nearPlane,sceneView.farPlane);
+
         else if(sceneView.type === "ortho")
             this.projectionMatrix.manipulate("ortho",
                         sceneView.negativeX, sceneView.positiveX,

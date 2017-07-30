@@ -193,7 +193,7 @@ function Plane(w, h, segments, sections, info){
         var y = startY + parseInt(i/(sections+1))*yStep;
         this.vertices.push( x, y, .0 );
         this.normals.push( .0, .0, 1.0 );
-        this.textures.push( (x-startX)/w,  (h-y+startY)/h );
+        this.textures.push( (x-startX)/w,  (h+y+startY)/h );
 
         if(i < (segments)*(sections+1) && (i+1)%(sections+1) != 0){
 //            var currSeg = i*(sections+1);

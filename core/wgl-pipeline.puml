@@ -1,0 +1,23 @@
+@startuml
+partition Main{
+(*) -[#green,dashed]->[wgl beforeInit] Wgl Init
+-> == I1 ==
+-->initPrograms
+--> == I2 ==
+== I1 == -->[afterShadersAttached]initRenderData
+--> == I2 ==
+}
+
+    partition Sub{
+    initPrograms -->[beforeLoadShaders] initShaders
+    -->initPrograms
+
+    initRenderData --> initRenderElement
+    --> [afterInitRenderData] initRenderData
+    }
+
+partition Main{
+==I2== -->[wgl afterInit] initRender
+-[#green,dashed]->(*)
+}
+@enduml

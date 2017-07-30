@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/jorjsmile/jwgl#readme",
   "dependencies": {
-    "gl-matrix": "git+https://github.com/toji/gl-matrix.git"
+    "gl-matrix": "git+https://github.com/toji/gl-matrix.git",
+    "webgl-debug": "git+https://github.com/vorg/webgl-debug.git"
   }
 }

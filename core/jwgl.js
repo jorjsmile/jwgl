@@ -3,18 +3,44 @@
  * @param {element} el
  * @param {Object} options
  * @returns {jWGL}
- * 
+ *
+ * @example
+ * wgl = new jWGL("camera", {
+                programs : {
+                    "main" : {
+                        name : "Main",
+                        shaders : {
+                            vertex : ComplexVertexShader,
+                            fragment : ComplexFragmentShader
+                        }
+                    }
+                },
+                render : {
+                    "main":{
+                        class : Render,
+                        programIndex : "main",
+                    }
+                },
+                data : [
+                ]
+            });
+
+ wgl.assignModules([
+ ]);
+
+ wgl.init();
+ *
  * @startuml
  * jWGL : -options;
  * @enduml
  */
 function jWGL(el, options){
     var options = options || {};
-    WGLObject.call(this, options.events);
+    WGLObject.call(this, options);
     
     /************************* Private properties ************************/
     var el,
-        debugLibrary = "../lib/webgl.debug.js",
+        debugLibrary = options.debugLibrary || "lib/webgl.debug.js",
         canvasOptions = extend({
                             premultipliedAlpha : true
                         }, options["canvas"] || {}),
@@ -73,7 +99,7 @@ function jWGL(el, options){
                                 type : gl.FRAGMENT_SHADER
                           }));
                  _this.raiseEvent("beforeLoadShaders", i, 
-                            programs[i].shaders.vertex.instance, 
+                            programs[i].shaders.vertex.instance,
                             programs[i].shaders.fragment.instance);
                             
                  (function(a){
@@ -208,6 +234,16 @@ function jWGL(el, options){
         
     if( !this.gl )
             throw "Couldn't initialize webgl";
+
+    // canvas.addEventListener("webglcontextlost", function(event) {
+    //     event.preventDefault();
+    // }, false);
+    //
+    // canvas.addEventListener(
+    //     "webglcontextrestored", function(){
+    //         // _this.init();
+    //         _this.run();
+    //     }, false);
     /*************** Init WEBGL *************/    
 }
 
