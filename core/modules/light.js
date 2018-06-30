@@ -17,19 +17,21 @@ function Light(options){
     
     //names of programs that must contain light
     var programNames = options.programNames || ["main"]
-    options.lightNumber = Math.min(Math.max(options.lightNumber||0, 1), 5);
-    options.lights = options.lights || [
+    options.lightNumber = Math.min(Math.max(options.lightNumber||0, options.lights.length), 5);
+    options.lights = options.lights;
+
+    var _default =
         {
-            position : [.0, 20.0, 0.0],
+            position : [.0, 0.0, 0.0],
             ambient : [.5, .5, .5],
             diffuse : [.3, .3, .3],
             specular : [.9, .9, .9]
         }
-    ];
-    console.log(options.lights);
-    
-    this.getProgramNames = function(){ return programNames; }
-    this.getOptions = function(){ return options; }
+    ;
+
+    this.getProgramNames = function(){ return programNames; };
+    this.getOptions = function(){ return options; };
+    this.getDefault = function(off) { return _default[off] || _default; };
     
 }
 
@@ -73,28 +75,30 @@ Light.prototype.initGL = function(render){
     var gl = render.getGL();
     if(!gl.isEnabled(gl.DEPTH_TEST))
         gl.enable(gl.DEPTH_TEST);
-    
-    if(!gl.isEnabled(gl.CULL_FACE)){        
-        gl.enable(gl.CULL_FACE);
-        gl.cullFace(gl.FRONT);
-    }
+
     if(gl.isEnabled(gl.BLEND))
         gl.disable(gl.BLEND);
+
     render.getConfig().clear.push ( render.getGL().DEPTH_BUFFER_BIT );
 }
 
 Light.prototype.beforeProcessElement = function(object, data){
     if(!inArray(this.getProgramNames(), object.getConfig().programName)) return ;
 
-    var normalMatrix = mat3.create(),
+    var normalMatrix = mat4.create(),
+        normalTransposed = mat4.create(),
         gl = object.getGL(),
         vertex = object.getVShader(),
-        fragment = object.getFShader();
+        fragment = object.getFShader(),
+        normalMat3 = mat3.create();
 //    console.log(data);
 //    mat4.multiply(   data.modelMatrix, object.modelViewMatrix.getMatrix(),    normalMatrix );
-    mat4.toInverseMat3( object.modelViewMatrix.getMatrix(), normalMatrix);
-    mat3.transpose(normalMatrix);
-    gl.uniformMatrix3fv(vertex.normalMatrix, false, normalMatrix);
+    mat4.invert( normalMatrix,  object.modelViewMatrix.getMatrix() );
+    mat4.transpose(normalTransposed, normalMatrix);
+
+    mat3.fromMat4(normalMat3, normalTransposed);
+    gl.uniformMatrix3fv(vertex.normalMatrix, false, normalMat3);
+
 //    console.log(fragment);
     gl.uniform3fv(fragment.uMaterial.ambient, data.material.ambient);
     gl.uniform3fv(fragment.uMaterial.specular, data.material.specular);
@@ -116,24 +120,32 @@ Light.prototype.beforeDrawElements = function(object){
     var lights = this.getOptions().lights || [],
         count = this.getOptions().lightNumber,
         fragment = object.getFShader(),
-        gl = object.getGL();
+        gl = object.getGL(),
+        modelViewMatrix=object.modelViewMatrix.getMatrix();
+
+
     for(var c = 0; c < count; c ++){
         var l =  lights[c] || {},
-            ambient = l.ambient || lights.ambient,
-            diffuse = l.diffuse || lights.diffuse,
-            specular = l.specular || lights.specular,
-            position = l.position || [.0, 20.0, 0.0];
+            ambient = l.ambient || this.getDefault("ambient"),
+            diffuse = l.diffuse || this.getDefault("diffuse"),
+            specular = l.specular || this.getDefault("specular"),
+            position = l.position || this.getDefault("position"),
+            global = l.global || false,
+            staticLight = vec3.create();
+
+        if(!global)
+            vec3.transformMat4(staticLight, position, modelViewMatrix);
+        else
+            staticLight = position;
 
 //        position = mat4.multiplyVec3(object.modelViewMatrix, position);
 //        console.log(position);
-        if(fragment.uLight == undefined)
-            console.log(object.getConfig());
         gl.uniform3fv(fragment.uLight[c].ambient, ambient);
         gl.uniform3fv(fragment.uLight[c].diffuse, diffuse);
         gl.uniform3fv(fragment.uLight[c].specular, specular);
-        gl.uniform3fv(fragment.uLight[c].position, position);
+        gl.uniform3fv(fragment.uLight[c].position, staticLight);
     }
-}
+};
 
 Light.prototype.setVertexVariables = function(shader){
     if(!(shader instanceof CompositeShader)) return;

@@ -1,5 +1,5 @@
 @startuml
-partition Main{
+partition Main {
 (*) -[#green,dashed]->[wgl beforeInit] Wgl Init
 -> == I1 ==
 -->initPrograms
@@ -8,7 +8,7 @@ partition Main{
 --> == I2 ==
 }
 
-    partition Sub{
+    partition Sub {
     initPrograms -->[beforeLoadShaders] initShaders
     -->initPrograms
 
@@ -16,7 +16,7 @@ partition Main{
     --> [afterInitRenderData] initRenderData
     }
 
-partition Main{
+partition Main {
 ==I2== -->[wgl afterInit] initRender
 -[#green,dashed]->(*)
 }

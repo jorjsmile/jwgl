@@ -21,16 +21,22 @@ function Texture(options){
     
     var perObject = options.perObject || 5,
         mixingMethod = options.mixingMode || "*",
-        programNames = options.programNames || ["main"];
+        programNames = options.programNames || ["main"],
+        flipY = true;
+    ;
 
     this.getPerObject = function(){
         return perObject;
     };
     
-    this.getProgramNames = function(){ return programNames; }
+    this.getProgramNames = function(){ return programNames; };
 
     
     this.getMixingMethod = function (){ return mixingMethod; };
+
+    // this.
+
+    this.getFlipY = function() { return flipY};
 
     this._default = null;//default texture that will be bounded to each object
     this._maxTexCount = 0; // max texture from all objects. That flag will load that amount of default textures
@@ -64,7 +70,12 @@ Texture.prototype.eventAfterInitRenderData = function(object, callback){
                 syncOut();
             }
         ];
-        
+
+    /**
+     * Texture Initializations
+     */
+    object.gl.pixelStorei(object.gl.UNPACK_FLIP_Y_WEBGL, this.getFlipY());
+
     for(var o in object.data){
         if(object.data[o].texture === undefined) continue;
 
@@ -140,13 +151,20 @@ Texture.prototype.beforeProcessElement = function(object, data){
     object.textureCount = object.textureCount || 0;
     var gl = object.getGL(),
         fragment = object.getFShader(),
-        vertex = object.getVShader();
+        vertex = object.getVShader(),
+        getTexture = function(n){
+            return data.texture === undefined || data.texture[n] === undefined? null : data.texture[n];
+        };
+
     for(var t=0; t < this._maxTexCount; t++)
     {
-        if( !this.raiseEvent("beforeApplyTexture", t, data.texture[t]) )
+
+        var tex = getTexture(t);
+
+        if( !this.raiseEvent("beforeApplyTexture", t, tex ) )
             continue;
 
-        if(data.texture!==undefined && data.texture[t] !== undefined ){
+        if( tex ){
             gl.uniform1i(fragment.textureLoaded[t], 1);
             gl.uniform1i(fragment.textureSource[t], t );
             gl.activeTexture(gl.TEXTURE0 + t );
@@ -160,7 +178,7 @@ Texture.prototype.beforeProcessElement = function(object, data){
             // gl.uniform1i(fragment.textureLoaded[t], 0);
         }
         object.textureCount ++;
-        this.raiseEvent("afterApplyTexture", t, data.texture[t]);
+        this.raiseEvent("afterApplyTexture", t, tex);
     }
 
     if(data.texturesPerItem !== 0){
@@ -232,7 +250,7 @@ Texture.prototype.eventBeforeLoadShaders = function(object, programName, vertex,
 
     this.setVertexVariables(vertex);
     this.setFragmentVariables(fragment);
-}
+};
 
 Texture.prototype.setVertexVariables = function(shader){
     if(!(shader instanceof CompositeShader)) return;
@@ -244,7 +262,7 @@ Texture.prototype.setVertexVariables = function(shader){
     main.expressions.push(
             new Expression({elements :[ "texture" ], operator:"*", prefix : "vTexture = ", suffix: ";"})
         );
-}
+};
 
 Texture.prototype.setFragmentVariables = function(shader){
     if(!(shader instanceof CompositeShader)) return;
@@ -263,7 +281,7 @@ Texture.prototype.setFragmentVariables = function(shader){
                             \
                             for(int i = 0; i < MAX_TEXTURES; i++)\n\
                                 if(textureLoaded[i] == 1)\n\
-                                    textureAmount "+mM+"=  texture2D(textureSource[i], vTexture);\n\
+                                    textureAmount "+mM+"=  texture2D(textureSource[i], vTexture );\n\
             ");
     shader.setColorExpression("textureAmount");
 }

@@ -56,6 +56,8 @@ function Matrix( options ){
         mat4[event].apply(this, args);
 //        console.log(m);
         this.raiseEvent("afterManipulate", m);
+
+        return this;
     };
 }
 

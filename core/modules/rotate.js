@@ -6,16 +6,16 @@ function Rotate(options){
         modelViewMatrix = mat4.create();
     
     this.prepareRotation = function(render){
-        modelViewMatrix = mat4.create(render.modelViewMatrix.getMatrix());
-        rModelViewMatrix = mat4.create(render.modelViewMatrix.getMatrix());
+        modelViewMatrix = mat4.clone(render.modelViewMatrix.getMatrix());
+        rModelViewMatrix = mat4.clone(render.modelViewMatrix.getMatrix());
 //        console.log(_this.xAngle, _this.yAngle);
         _this.makeRotation(rModelViewMatrix);
         _this.raiseEvent("afterPrepareRotation");
     }
     
     this.makeRotation = function(m){
-        mat4.rotate(m, _this.xAngle, [1.0, .0, .0]);
-        mat4.rotate(m, _this.yAngle, [.0, 1.0, .0]);        
+        mat4.rotateX(m, m, _this.xAngle);
+        mat4.rotateY(m, m, _this.yAngle);
     }
     
     this.applyRotation = function(render, index){
@@ -97,10 +97,7 @@ Rotate.prototype.enableGLStates = function(render){
         gl.depthFunc(gl.LESS);
     }
     
-    if(!gl.isEnabled(gl.CULL_FACE)){        
-        gl.enable(gl.CULL_FACE);
-        gl.cullFace(gl.FRONT);
-    }
+
     
     render.getConfig().clear.push ( render.getGL().DEPTH_BUFFER_BIT );
 };

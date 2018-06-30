@@ -1,9 +1,18 @@
-function Snapshot(options) {    
+/**
+ * You can snap all or one program rendering in one period of time
+ * Using:
+ * ctrl+s+a - will snap everything
+ * ctrl+s+N - will snap appropriate screen, where N 1..9 nr. of program
+ *
+ * @param options
+ * @constructor
+ */
+function Snapshot(options) {
     WGLModule.call(this, options);
     
     var programs = options.program || ["main"];
     var keyCodes = options.keyCodes || { 
-            "snapAll" : [16, 83, 65]
+            "snapAll" : [16, 83, 65] //shift + a + s
     };
     var toImage = options.toImage || true;
     
@@ -41,6 +50,7 @@ Snapshot.prototype.eventBeforeInit = function(object){
             if(isEqualArrays(keyCodes[kC], _this.isPushed)){
                 _this.snap = kC;
                 _this.snapFrames();
+                _this.isPushed = [];
             }
         }            
     }
@@ -65,9 +75,9 @@ Snapshot.prototype.snapPicture = function(object){
     
     var programName = object.getConfig().programName,
         gl = object.getGL();
-        
+
+
     if(this.couldSnap(programName)){
-        console.log(programName);
         var w = gl.drawingBufferWidth,
             h = gl.drawingBufferHeight,
             buffer = new Uint8Array(w*h*4),
@@ -92,14 +102,15 @@ Snapshot.prototype.snapPicture = function(object){
         this.shots[programName] = tempcanvas.toDataURL("image/png");
         if(this.getToImage() )
             this.displayImage(programName);
-        
+
         this.lookForSnaps(programName);
+
     }
-        
+
 };
 
 Snapshot.prototype.couldSnap = function(index){
-    
+
     return inArray([index, "snapAll"], this.snap ) &&             
             this.snapedPrograms.indexOf(index) === -1 &&
             inArray(this.getPrograms(), index);
@@ -108,12 +119,14 @@ Snapshot.prototype.couldSnap = function(index){
 Snapshot.prototype.lookForSnaps = function(index){
     if(this.snap === "snapAll"){
         var programs = this.getPrograms();
-        if(this.snapedPrograms.length === programs.length){
+
+        this.snapedPrograms.push(index);
+
+        if(this.snapedPrograms.length <= programs.length){
             this.snapedPrograms = [];
             this.snap = null;
         }
            
-        this.snapedPrograms.push(index);
     }
     else if(this.snap === index){
             this.snap = null;

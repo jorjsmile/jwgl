@@ -22,11 +22,9 @@
                     }
                 },
                 data : [
-                ]
+                ],
+                modules : {}
             });
-
- wgl.assignModules([
- ]);
 
  wgl.init();
  *
@@ -42,7 +40,7 @@ function jWGL(el, options){
     var el,
         debugLibrary = options.debugLibrary || "lib/webgl.debug.js",
         canvasOptions = extend({
-                            premultipliedAlpha : true
+                            premultipliedAlpha : false
                         }, options["canvas"] || {}),
         programs = options.programs || { }, //program or programs that will be inited
         defaultProgram = options["defaultProgram"] || "main",
@@ -223,9 +221,9 @@ function jWGL(el, options){
         console.log("Element was not found");
     
     try{            
-        this.gl =  canvas.getContext(this.glVersion='webgl2', this.canvasOptions) ||
-                   canvas.getContext(this.glVersion='webgl', this.canvasOptions) ||
-                   canvas.getContext(this.glVersion='experimental-webgl', this.canvasOptions);
+        this.gl =  canvas.getContext(this.glVersion='webgl2', canvasOptions) ||
+                   canvas.getContext(this.glVersion='webgl', canvasOptions) ||
+                   canvas.getContext(this.glVersion='experimental-webgl', canvasOptions);
     }
     catch( e ){
         console.log( e );

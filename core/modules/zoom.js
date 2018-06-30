@@ -89,12 +89,7 @@ Zoom.prototype.enableGLStates = function(render){
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LESS);
     }
-    
-    if(!gl.isEnabled(gl.CULL_FACE)){        
-        gl.enable(gl.CULL_FACE);
-        gl.cullFace(gl.FRONT);
-    }
-    
+
     render.getConfig().clear.push ( render.getGL().DEPTH_BUFFER_BIT );
 };
 

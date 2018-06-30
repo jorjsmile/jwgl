@@ -229,32 +229,33 @@ function Cube(scale, info){
             scale, -scale, scale,
             -scale, scale, scale,
             scale, scale, scale,
-            
+
             //back
             scale, scale, -scale,
             -scale, scale, -scale,
             scale, -scale, -scale,
             -scale, -scale, -scale,
-        
-            //top
+
+            // //top
             -scale, scale, -scale,
             scale, scale, -scale,
             -scale, scale, scale,
             scale, scale, scale,
-        
-            //bottom
+
+            //
+            // //bottom
             scale, -scale, scale,
             -scale, -scale, scale,
             scale, -scale, -scale,
             -scale, -scale, -scale,
-        
-            //left
+            //
+            // //left
             -scale, -scale, -scale,
             -scale, scale, -scale,
             -scale, -scale, scale,
             -scale, scale, scale,
-        
-            //right
+            //
+            // //right
             scale, scale, scale,
             scale, -scale, scale,
             scale, scale, -scale,
@@ -296,24 +297,24 @@ function Cube(scale, info){
     this.normalsPerItem = 3;
 
     this.textures = [
+        0, 0, 1, 0, 0, 1, 1, 1,
+        0, 1, 1, 1, 0, 0, 1, 0,
+        0, 1, 1, 1, 0, 0, 1, 0,
+        1, 1, 0, 1, 1, 0, 0, 0,
         0, 0, 0, 1, 1, 0, 1, 1,
-        0, 0, 0, 1, 1, 0, 1, 1,
-        0, 0, 0, 1, 1, 0, 1, 1,
-        0, 0, 0, 1, 1, 0, 1, 1,
-        0, 0, 0, 1, 1, 0, 1, 1,
-        0, 0, 0, 1, 1, 0, 1, 1
+        0, 1, 0, 0, 1, 1, 1, 0
     ];
     this.texturesPerItem = 2;
     
     this.indices = [
             0, 2, 1, 1, 2, 3, //front
             4, 5, 6, 6, 5, 7,  //back
-            8, 9,10,10, 9,11,  //top
-           12,14,13,13,14,15,  //bottom
-           16,17,18,18,17,19,  //left
-           20,22,21,21,22,23  //rigth
+            8, 9, 10, 10, 9, 11,  //top
+            12,14,13,13,14,15,  //bottom
+            16,17,18,18,17,19,  //left
+            20,22,21,21,22,23  //rigth
         ];
-    this.totalItems = 36;    
+    this.totalItems = 36;//6;
     
 }
 
@@ -524,8 +525,9 @@ function Cylinder(R, H, segments, sections, info){
                  
             this.vertices.push(
                     R*x, level, R*z);
-    
-            var n = vec3.normalize([x, .0, z]);
+
+            var n = vec3.create();
+            vec3.normalize(n, [x, .0, z]);
             this.normals.push(n[0], n[1], n[2]);
             var yTex = i==0 || i == segments-1? R/(H+2*R) : (i*H/(H+2*R))/segments;
             this.textures.push(j/sections, yTex );                   

@@ -1,3 +1,8 @@
+/**
+ *
+ * @param opts
+ * @constructor
+ */
 function Render(opts){
     var options = opts || {};
     WGLObject.call(this, options);
@@ -40,9 +45,14 @@ Render.prototype.initGL = function(){
 //    gl.frontFace(gl.CW);
     this.raiseEvent("initGL");
     this.initWindow();
+    this.initRenderMode(gl);
 
     if(this.getConfig().renderToFrame)
         this.frameInit();
+}
+Render.prototype.initRenderMode = function(gl){
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.FRONT);
 }
 
 Render.prototype.initWindow = function(w,h){
@@ -51,7 +61,7 @@ Render.prototype.initWindow = function(w,h){
         r = w/h;
     var sceneView = this.getConfig().sceneView = this.getConfig().sceneView || {
         type :  "perspective", 
-        angle : 60,
+        angle : 45,
         nearPlane : 1.0,
         farPlane : 100.0
     };
@@ -84,7 +94,7 @@ Render.prototype.frameOn = function(){
     
     if(gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE)
         console.log("Framebuffer is not ready");
-}
+};
 
 Render.prototype.clearFrame = function(){
     for(var f in this.config.frames){
@@ -196,17 +206,19 @@ Render.prototype.process = function(){
     this.getConfig().clear.forEach(function(e){clear |= e;});    
     gl.clear( clear );
 
-    if(window.startCount && (!window.zoomCount || window.zoomCount < 3)){
-        console.log(this.getConfig().lookAt);
-        console.log(this.getConfig());
-        window.zoomCount = window.zoomCount+1 || 0;
-    }
+    // if(window.startCount && (!window.zoomCount || window.zoomCount < 3)){
+    //     console.log(this.getConfig().lookAt);
+    //     console.log(this.getConfig());
+    //     window.zoomCount = window.zoomCount+1 || 0;
+    // }
     var lookAt = this.getConfig().lookAt;
     this.modelViewMatrix.manipulate("identity");
-//    mat4.identity(this.modelViewMatrix);   
-    this.modelViewMatrix.manipulate("lookAt",lookAt.position, lookAt.lookPoint, lookAt.up);
-//    mat4.lookAt(lookAt.position, lookAt.lookPoint, lookAt.up,  this.modelViewMatrix);
-    
+    if(typeof lookAt !== "function")
+        this.modelViewMatrix.manipulate("lookAt", lookAt.position, lookAt.lookPoint, lookAt.up);
+    else
+        lookAt(this.modelViewMatrix);
+
+    // console.log(this.modelViewMatrix);
     this.raiseEvent("beforeDrawElements");
 //    console.log(data);
     for(var k in data){
@@ -216,7 +228,7 @@ Render.prototype.process = function(){
         mat4.identity(data[k].modelMatrix);
        
         if(data[k].translate !== undefined && vec3.length(data[k].translate) !== 0 )
-            mat4.translate(data[k].modelMatrix, data[k].translate);
+            mat4.translate(data[k].modelMatrix, data[k].modelMatrix, data[k].translate);
         if(data[k].rotate !== undefined && vec3.length(data[k].rotate) !== 0){
             mat4.rotate(data[k].modelMatrix, radians( data[k].rotate[0]), [1.0,.0,.0]);
             mat4.rotate(data[k].modelMatrix, radians( data[k].rotate[1]), [.0,1.0,.0]);

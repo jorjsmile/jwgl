@@ -4,25 +4,24 @@
         <title></title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <!--script type="text/javascript" src="../lib/js/jquery-1.7.js"></script-->
-        <script type="text/javascript" src="../lib/js/glMatrix-0.9.5.min.js"></script>
-        <script type="text/javascript" src="../lib/jwgl/wglobject.js"></script>
-        <script type="text/javascript" src="../lib/jwgl/matrix.js"></script>
-        <script type="text/javascript" src="../lib/jwgl/common.js"></script>
-        <script type="text/javascript" src="../lib/jwgl/shaders.js"></script>
-        <script type="text/javascript" src="../lib/jwgl/render.js"></script>
-        <script type="text/javascript" src="../lib/jwgl/jwgl.js"></script>
-        <script type="text/javascript" src="../lib/jwgl/primitives.js"></script>
-        <script type="text/javascript" src="../lib/jwgl/modules/rotate.js"></script>
-        <script type="text/javascript" src="../lib/jwgl/modules/zoom.js"></script>
-        <script type="text/javascript" src="../lib/jwgl/modules/light.js"></script>
-        <script type="text/javascript" src="../lib/jwgl/modules/texture.js"></script>
-        <script type="text/javascript" src="../lib/jwgl/modules/control.js"></script>
-        <script type="text/javascript" src="../lib/jwgl/modules/snapshot.js"></script>
-        <script type="text/javascript" src="../lib/jwgl/modules/shadow.js"></script>
+        <script type="text/javascript" src="../../node_modules/gl-matrix/dist/gl-matrix.js"></script>
+        <script type="text/javascript" src="../../core/wglobject.js"></script>
+        <script type="text/javascript" src="../../core/matrix.js"></script>
+        <script type="text/javascript" src="../../core/common.js"></script>
+        <script type="text/javascript" src="../../core/shaders.js"></script>
+        <script type="text/javascript" src="../../core/render.js"></script>
+        <script type="text/javascript" src="../../core/jwgl.js"></script>
+        <script type="text/javascript" src="../../core/primitives.js"></script>
+        <script type="text/javascript" src="../../core/modules/rotate.js"></script>
+        <script type="text/javascript" src="../../core/modules/zoom.js"></script>
+        <script type="text/javascript" src="../../core/modules/light.js"></script>
+        <script type="text/javascript" src="../../core/modules/texture.js"></script>
+        <script type="text/javascript" src="../../core/modules/control.js"></script>
+        <script type="text/javascript" src="../../core/modules/snapshot.js"></script>
+        <script type="text/javascript" src="../../core/modules/shadow.js"></script>
         <script type="text/javascript" >
             var wgl;
             function main (){
-                console.log(1);
                 wgl = new jWGL("jwgl", {
                     programs : {
                         "main" : {
@@ -37,6 +36,7 @@
                         "main":{
                             class : Render,
                             programIndex : "main",
+                            bgColor : [0.7, 0.7, 0.7, 1.0]
 //                            loop : false
                         }
                     },
@@ -52,22 +52,30 @@
                                 }
                             ],
                             material : {
-                                diffuse : [1.,1.,1.]
+                                ambient : [1.,1.,1.],
+                                diffuse : [1.,1.,1.],
+                                specular : [1.,1.,1.],
+
                             }
 
                         } ),
                         new Sphere(1, 10, 10, {
-                            translate : [2, .0, .0]
+                            translate : [2, .0, .0],
+                            material : {
+                                ambient : [.8, .8, .8],
+                                diffuse : [.8, .8, .8],
+                                specular : [.5, .5, .5],
+
+                            }
                         }),
                         new Cylinder(10, .1, 1, 10, {
                             translate : [.0, -2, .0],
                             moduleRotate : false,
                             moduleControl : false,
                             material : {
-//                                ambient : [.8, .8, .8],
-//                                diffuse : [.8, .8, .8],
-//                                specular : [.5, .5, .5],
-//                                shininnes :
+                               ambient : [.8, .8, .8],
+                               diffuse : [.3, .3, .3],
+                               specular : [.5, .5, .5],
 
                             }
                         })
@@ -75,23 +83,34 @@
                 });
 //                wgl.initDebug();
                 wgl.assignModules([
-//                                   { class : Zoom, programs : ["main", "control"]},
-                                   Rotate, 
+                                  { class : Zoom, programs : ["main", "control"]},
+                                   Rotate,
                                     { "class": Light,
-                                        lights: [{
-                                            ambient : [.9,.9,.9],
+                                        lights: [
+                                        {
+                                            global : 1,
+                                            ambient : [.1,.1,.1],
+                                            diffuse : [.3, .3, .3],
+                                            specular : [.0, .0, .0],
+                                            position : [.0, 10.0, .0]
+                                        },
+                                        {
+                                            ambient : [.2,.2,.2],
                                             diffuse : [.9, .9, .9],
-                                            specular : [.5, .5, .5]
-                                        }]
+                                            specular : [.3, .3, .3],
+                                            // specular : [.5, .5, .5]
+                                        }
+
+                                        ]
                                     },
                                    Texture,
 //                                   { class : Control, translate : true, translateTrigger :  "translate"},
-//                                   { class : Snapshot, program : ["main", "control", "shadow"]},
-//                                   Shadow
+                                  { class : Snapshot, program : ["main",/* "control",*/ "shadow"]},
+                                  Shadow
                                ]);
 
-                wgl.init();
-//                wgl.initDebug();
+               wgl.init();
+               // wgl.initDebug();
             }
         </script>   
         <style type="text/css">
@@ -106,6 +125,6 @@
     
     <body onload="main()">
         <canvas id="jwgl" width="450" height="450" tabindex="-1"></canvas>
-        <label for="translate">Translate</label><input type="checkbox" id="translate" value="0"/>
+        <!--<label for="translate">Translate</label><input type="checkbox" id="translate" value="0"/>-->
     </body>
 </html>
