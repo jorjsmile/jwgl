@@ -17,7 +17,7 @@
                 },
                 render : {
                     "main":{
-                        class : Render,
+                        class : Render3D,
                         programIndex : "main",
                     }
                 },
@@ -44,7 +44,7 @@ function jWGL(el, options){
                         }, options["canvas"] || {}),
         programs = options.programs || { }, //program or programs that will be inited
         defaultProgram = options["defaultProgram"] || "main",
-        render = options.render || Render,
+        render = options.render || Render3D,
         _this = this;
     
     /************************** Private methods **************************/
@@ -109,8 +109,8 @@ function jWGL(el, options){
                                     function(o){                                        
                                         linkProgram( gl, programs[a]);   
                                     });
-                    syncList.push( function(o, c){ programs[a].shaders.vertex.instance.loadShader(c); },
-                                   function(o, c){ programs[a].shaders.fragment.instance.loadShader(c); } ) ;
+                    syncList.push( function(o, c){ console.log('vertex',a); programs[a].shaders.vertex.instance.loadShader(c); },
+                                   function(o, c){ console.log('fragment',a);programs[a].shaders.fragment.instance.loadShader(c); } ) ;
                  })(i);
              }             
         }     
@@ -190,7 +190,7 @@ function jWGL(el, options){
             else return render[name];
     };
     this.getRenderByProgram = function(name){
-        for(var r in render) if(render[r].getConfig().programName === name) return render[r];
+        for(var r in render) if(render[r].getProgram().name === name) return render[r];
         return false;
     };
     this.init = function(){    
@@ -221,7 +221,7 @@ function jWGL(el, options){
         console.log("Element was not found");
     
     try{            
-        this.gl =  canvas.getContext(this.glVersion='webgl2', canvasOptions) ||
+        this.gl =  // canvas.getContext(this.glVersion='webgl2', canvasOptions) || //current ui-debuggers don't see that context
                    canvas.getContext(this.glVersion='webgl', canvasOptions) ||
                    canvas.getContext(this.glVersion='experimental-webgl', canvasOptions);
     }
@@ -334,8 +334,9 @@ jWGL.prototype.loopFunc = function(){
         renders = this.getRender();
     window.requestAnimationFrame(function(){
         for(var r in _this.rendersOrder){
+            // if(_this.rendersOrder[r]["name"] == "main" && _this.ticks % 2 === 0) continue;
             var render = renders[_this.rendersOrder[r]["name"]];
-            if( render.getConfig().loop){
+            if( render.getConfig().loop ){
                 _this.activateProgram(render.getConfig().programName);
                 _this.raiseEvent("beforeRenderProcess", render);
                 render.process();

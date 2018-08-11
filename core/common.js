@@ -7,7 +7,8 @@
 function extend(Object1, Object2){
     var o1 = Object1, 
         o2 = Object2;
-//    console.log(Object2); 
+   // console.log(o1, o2);
+   //  console.trace(1);
     for(var i in o2){
         if(o1[i]==undefined){
 //            console.log(i);

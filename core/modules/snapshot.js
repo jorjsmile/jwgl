@@ -73,7 +73,7 @@ Snapshot.prototype.eventAfterInitRenders = function(object){
 
 Snapshot.prototype.snapPicture = function(object){
     
-    var programName = object.getConfig().programName,
+    var programName = object.getProgram().name,
         gl = object.getGL();
 
 

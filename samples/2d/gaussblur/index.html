@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gaussian Blur</title>
+</head>
+<style>
+    #gauss-blur{
+        border: 1px solid #000;
+        margin : 0 auto;
+        display : block;
+    }
+</style>
+<body >
+<canvas width="800" height="600" id="gauss-blur" tabindex="-1"></canvas>
+</body>
+<script type="text/javascript" src="../../../node_modules/gl-matrix/dist/gl-matrix.js"></script>
+<script src="../../../core/common.js"></script>
+<script src="../../../core/wglobject.js"></script>
+<script src="../../../core/jwgl.js"></script>
+<script src="../../../core/render.js"></script>
+<script src="../../../core/shaders.js"></script>
+<script src="../../../core/primitives.js"></script>
+<script src="../../../core/modules/texture.js"></script>
+<script src="../../../core/modules/snapshot.js"></script>
+<script src="../../../core/modules/filters/gaussian.js"></script>
+<script type="application/javascript">
+    var jwgl = null;
+        jwgl = new jWGL("gauss-blur", {
+            // debugLibrary  : "../../../node_modules/webgl-debug/index.js",
+            programs : {
+                "main" : {
+                    name : "main",
+                    shaders : {
+                        vertex : ComplexVertexShader(),
+                        fragment : ComplexFragmentShader()
+                    }
+                },
+                "blur" : {
+                    "name" : "blur",
+                    shaders : {
+                        vertex : ComplexVertexShader(),
+                        fragment : ComplexFragmentShader()
+                    }
+                }
+            },
+            render : {
+                "main":{
+                    class : Render2D,
+                    programIndex : "main",
+                    bgColor : [0.7, 0.7, 0.7, 1.0],
+                    events : {
+                        "beforeProcessElement" : function(o, data){
+                            var textureModule = jwgl.getModuleByClass(Texture),
+                                // texture = jwgl.getModuleByClass(GaussianBlurFilter).getPreviousRenderTexture("_gaussHRender");
+                                texture = jwgl.getModuleByClass(GaussianBlurFilter).getResultTexture();
+
+                             textureModule.bindTexture(o, "gaussTexture", texture);
+                            return true;
+                        }
+                    }
+                    // renderToFrame : true,
+//                            loop : false
+                }
+            },
+            data : [
+                new Plane(2.0, 2.0, 5, 5, {
+                    texture : [
+                        {
+                            url : 'webgl.png'
+                        }
+                    ]
+                })
+            ],
+            modules  : [
+                {
+                    "class" : Texture,
+                    "programNames" : ["main", "blur"]
+                },
+                {
+                    "class" : GaussianBlurFilter,
+                    programIndex : "blur",
+                    R : 20
+                },
+                {
+                    "class" : Snapshot,
+                    "program" : ["gaussianVBlurProgram"]
+                }
+            ],
+            events : {
+                "beforeLoadShaders" : function(object, programName, vertex, fragment){
+                    if(programName !== 'main') return;
+
+                    fragment.setVariable("gaussTexture", {location:"uniform", type : "sampler2D"});
+
+                    fragment.setColorExpression("texture2D(gaussTexture,vTexture)");
+                }
+            }
+        });
+
+        jwgl.getModuleByClass(Texture).addListener("beforeApplyTexture", function(module, t,tex,render,model){
+             if(render.getProgram().name === 'main') return false; //skip all textures
+
+            return true;
+        });
+        // jwgl.initDebug();
+        jwgl.init();
+</script>
+</html>

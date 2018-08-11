@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Glow</title>
+
+    <style>
+        #glow{
+            border: 1px solid #aaa;
+            display:block;
+            margin: 10px auto 0px;
+        }
+    </style>
+    <script type="text/javascript" src="../../node_modules/gl-matrix/dist/gl-matrix.js"></script>
+    <script  type="text/javascript" src="../../core/common.js"></script>
+    <script  type="text/javascript"  src="../../core/wglobject.js"></script>
+    <script  type="text/javascript" src="../../core/matrix.js"></script>
+    <script  type="text/javascript" src="../../core/jwgl.js"></script>
+    <script  type="text/javascript" src="../../core/shaders.js"></script>
+    <script  type="text/javascript" src="../../core/render2d.js"></script>
+    <script  type="text/javascript" src="../../core/render3d.js"></script>
+    <script  type="text/javascript" src="../../core/primitives.js"></script>
+    <script  type="text/javascript" src="../../core/modules/texture.js"></script>
+    <script  type="text/javascript" src="../../core/modules/rotate.js"></script>
+    <script  type="text/javascript" src="../../core/modules/light.js"></script>
+    <script  type="text/javascript" src="../../core/modules/filters.js"></script>
+    <script>
+        var jwgl = null;
+        var spheresDist = 5,
+            sphereMaterial = function(color){
+                return {
+                    ambient : [1.0, 1.0, 1.0],
+                    diffuse : color,
+                    specular : [.5, .5, .5],
+                };
+            },
+            addSphere = function(move, color){
+                return new Sphere(1, 30, 30, {
+                    translate : move,
+                    material : sphereMaterial(color)
+                });
+            };
+
+        function go(){
+            jwgl = new jWGL("glow", {
+                programs : {
+                    "main" : {
+                        name : "main",
+                        shaders : {
+                            vertex : ComplexVertexShader3D(),
+                            fragment : ComplexFragmentShader()
+                        }
+                    },
+                    // "gauss" : {
+                    //     name : "gauss",
+                    //     shaders : {
+                    //         vertex : ComplexVertexShader3D(),
+                    //         fragment : ComplexFragmentShader()
+                    //     }
+                    // }
+                },
+
+                render : {
+                    "main":{
+                        class : Render3D,
+                        programIndex : "main",
+                        bgColor : [.8, .8, .8, 1.0],
+                        lookAt: {position : [.0,0.0, 20.0], lookPoint:[.0,.0,.0], up : [.0, 1.0, .0]},
+                        // events: {
+                        //     "beforeProcessElement" : function(o, data) {
+                        //         var textureModule = jwgl.getModuleByClass(Texture),
+                        //             texture = jwgl.getModuleByClass(GaussianBlurFilter).getResultTexture();
+                        //
+                        //         textureModule.bindTexture(o, "gaussTexture", texture);
+                        //         return true;
+                        //     }
+                        // }
+
+                    }
+                },
+                data : [
+                    new Cylinder(10, 1, 1, 60, {
+                        translate : [.0, -4.0, 0.0],
+                        moduleRotate : false,
+                        material : {
+                            ambient : [.8, .8, .8],
+                            diffuse : [.3, .3, .3],
+                            specular : [.5, .5, .5]
+                        }
+                    }),
+
+                    addSphere([.0, 0.0, -spheresDist], [1.0, .0, .0]),
+                    addSphere([.0, 0.0, spheresDist], [1.0, 1.0, .0]),
+                    addSphere([spheresDist, 0.0, .0], [.0, 1.0, .0]),
+                    addSphere([-spheresDist, 0.0, .0], [.0, .0, 1.0]),
+
+                    new Cube(1, {
+                        translate : [.0, 0.0, 0.0],
+                        material : {
+                            ambient : [.8, .8, .8],
+                            diffuse : [.7, .7, .7],
+                            specular : [.5, .5, .5],
+                        }
+                    })
+                ],
+                events : {
+                    // "beforeLoadShaders" : function(object, programName, vertex, fragment){
+                    //     if(programName !== 'main') return;
+                    //
+                    //     fragment.setVariable("gaussTexture", {location:"uniform", type : "sampler2D"});
+                    //
+                    //     fragment.setColorExpression("texture2D(gaussTexture,vTexture)");
+                    // }
+                }
+
+            });
+
+            jwgl.assignModules([
+                Rotate,
+                {
+                    "class" : Light,
+                    lights : [
+                        {
+                            global : 1,
+                            ambient : [.1,.1,.1],
+                            diffuse : [.7, .7, .7],
+                            specular : [.5, .5, .5],
+                            position : [.0, 10.0, .0]
+                        }
+                    ]
+                },
+                // {
+                //     "class": GaussianBlurFilter,
+                //     programIndex : "gauss",
+                //     R : 20
+                //
+                // }
+            ]);
+
+            jwgl.init();
+        }
+    </script>
+</head>
+<body onload="go()">
+    <canvas width="800" height="600" id="glow"></canvas>
+</body>
+</html>

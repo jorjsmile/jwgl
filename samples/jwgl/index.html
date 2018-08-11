@@ -3,13 +3,12 @@
     <head>
         <title></title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <!--script type="text/javascript" src="../lib/js/jquery-1.7.js"></script-->
         <script type="text/javascript" src="../../node_modules/gl-matrix/dist/gl-matrix.js"></script>
         <script type="text/javascript" src="../../core/wglobject.js"></script>
         <script type="text/javascript" src="../../core/matrix.js"></script>
         <script type="text/javascript" src="../../core/common.js"></script>
         <script type="text/javascript" src="../../core/shaders.js"></script>
-        <script type="text/javascript" src="../../core/render.js"></script>
+        <script type="text/javascript" src="../../core/render3d.js"></script>
         <script type="text/javascript" src="../../core/jwgl.js"></script>
         <script type="text/javascript" src="../../core/primitives.js"></script>
         <script type="text/javascript" src="../../core/modules/rotate.js"></script>
@@ -25,16 +24,16 @@
                 wgl = new jWGL("jwgl", {
                     programs : {
                         "main" : {
-                            name : "Main",
+                            name : "main",
                             shaders : {
-                                vertex : ComplexVertexShader,
-                                fragment : ComplexFragmentShader
+                                vertex : ComplexVertexShader3D(),
+                                fragment : ComplexFragmentShader()
                             }
                         }
                     },
                     render : {
                         "main":{
-                            class : Render,
+                            class : Render3D,
                             programIndex : "main",
                             bgColor : [0.7, 0.7, 0.7, 1.0]
 //                            loop : false
@@ -42,7 +41,7 @@
                     },
                     data : [
                         new Cube( 1, {
-                            translate : [-2, .0, .0],
+                            translate : [.0, .0, .0],
                             texture : [
                                 {
                                     url : "gradient.png"
@@ -59,8 +58,8 @@
                             }
 
                         } ),
-                        new Sphere(1, 10, 10, {
-                            translate : [2, .0, .0],
+                        new Sphere(1, 20, 20, {
+                            translate : [4, .0, .0],
                             material : {
                                 ambient : [.8, .8, .8],
                                 diffuse : [.8, .8, .8],
@@ -68,7 +67,7 @@
 
                             }
                         }),
-                        new Cylinder(10, .1, 1, 10, {
+                        new Cylinder(10, .1, 1, 30, {
                             translate : [.0, -2, .0],
                             moduleRotate : false,
                             moduleControl : false,
@@ -99,6 +98,7 @@
                                             diffuse : [.9, .9, .9],
                                             specular : [.3, .3, .3],
                                             // specular : [.5, .5, .5]
+                                            position : [-4.0, .0, .0]
                                         }
 
                                         ]
@@ -106,7 +106,7 @@
                                    Texture,
 //                                   { class : Control, translate : true, translateTrigger :  "translate"},
                                   { class : Snapshot, program : ["main",/* "control",*/ "shadow"]},
-                                  Shadow
+                                  // Shadow
                                ]);
 
                wgl.init();
@@ -116,15 +116,17 @@
         <style type="text/css">
             #jwgl{
                 border:1px solid #000;
-                margin: 20px;
-                width : 450px;
-                height: 450px;
+                margin: 0 auto;
+                width : 800px;
+                height:600px;
+                display: block;
+
             }
         </style>
     </head>
     
     <body onload="main()">
-        <canvas id="jwgl" width="450" height="450" tabindex="-1"></canvas>
+        <canvas id="jwgl" width="800" height="600" tabindex="-1"></canvas>
         <!--<label for="translate">Translate</label><input type="checkbox" id="translate" value="0"/>-->
     </body>
 </html>

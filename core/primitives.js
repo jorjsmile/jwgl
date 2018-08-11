@@ -210,9 +210,9 @@ function Plane(w, h, segments, sections, info){
     this.texturesPerItem = 2;
     this.normalsPerItem = 3;
     this.totalItems = this.indices.length;
-    console.log(this.indices);
-    console.log(this.vertices);
-    console.log(this.textures);
+    // console.log(this.indices);
+    // console.log(this.vertices);
+    // console.log(this.textures);
 }
 
 Plane.prototype = new Shape();

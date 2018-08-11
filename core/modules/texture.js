@@ -146,14 +146,14 @@ Texture.prototype.bindTexture = function(object, variable, texture){
 };
 
 Texture.prototype.beforeProcessElement = function(object, data){
-    if(!inArray(this.getProgramNames(), object.getConfig().programName)) return;
+    if(!inArray(this.getProgramNames(), object.getProgram().name)) return;
 
     object.textureCount = object.textureCount || 0;
     var gl = object.getGL(),
         fragment = object.getFShader(),
         vertex = object.getVShader(),
         getTexture = function(n){
-            return data.texture === undefined || data.texture[n] === undefined? null : data.texture[n];
+            return data.texture === undefined || data.texture[n] === undefined? null : data.texture[n].src;
         };
 
     for(var t=0; t < this._maxTexCount; t++)
@@ -161,24 +161,25 @@ Texture.prototype.beforeProcessElement = function(object, data){
 
         var tex = getTexture(t);
 
-        if( !this.raiseEvent("beforeApplyTexture", t, tex ) )
-            continue;
+        if( !this.raiseEvent("beforeApplyTexture", t, tex, object, data ) )
+            tex=false;
+
 
         if( tex ){
             gl.uniform1i(fragment.textureLoaded[t], 1);
             gl.uniform1i(fragment.textureSource[t], t );
-            gl.activeTexture(gl.TEXTURE0 + t );
+            gl.activeTexture(gl.TEXTURE0 + object.textureCount );
             gl.bindTexture(gl.TEXTURE_2D, data.texture[t].src);
         }
         else{
             gl.uniform1i(fragment.textureLoaded[t], 0);
             gl.uniform1i(fragment.textureSource[t], t );
-            gl.activeTexture( gl.TEXTURE0 + t );
+            gl.activeTexture( gl.TEXTURE0 + object.textureCount );
             gl.bindTexture(gl.TEXTURE_2D, this._default);
             // gl.uniform1i(fragment.textureLoaded[t], 0);
         }
         object.textureCount ++;
-        this.raiseEvent("afterApplyTexture", t, tex);
+        this.raiseEvent("afterApplyTexture", t, tex, object, data);
     }
 
     if(data.texturesPerItem !== 0){
@@ -186,6 +187,8 @@ Texture.prototype.beforeProcessElement = function(object, data){
         gl.enableVertexAttribArray(vertex.texture);
         gl.vertexAttribPointer(vertex.texture, data.texturesPerItem, gl.FLOAT, false, 0, 0);
     }
+
+    return true;
 };
 
 
@@ -196,10 +199,8 @@ Texture.prototype.afterProcessElement = function(object, data){
     var gl = object.getGL();
 
     while(object.textureCount > 0){
-        gl.activeTexture(gl.TEXTURE0 + object.textureCount);
+        gl.activeTexture(gl.TEXTURE0 + --object.textureCount);
         gl.bindTexture(gl.TEXTURE_2D, null);
-
-        object.textureCount --;
     }
 };
 
@@ -280,7 +281,7 @@ Texture.prototype.setFragmentVariables = function(shader){
                             vec4 textureAmount = "+start+";\n\
                             \
                             for(int i = 0; i < MAX_TEXTURES; i++)\n\
-                                if(textureLoaded[i] == 1)\n\
+                                if(textureLoaded[i] == 1 )\n\
                                     textureAmount "+mM+"=  texture2D(textureSource[i], vTexture );\n\
             ");
     shader.setColorExpression("textureAmount");

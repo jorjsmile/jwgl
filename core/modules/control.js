@@ -535,13 +535,13 @@ controlFragmentSH.prototype = new Shader;
 controlFragmentSH.prototype.constructor = controlFragmentSH;
 
 function controlRender(options){
-    Render.call(this, options);
+    Render3D.call(this, options);
 }
 
-controlRender.prototype = new Render;
+controlRender.prototype = new Render3D;
 controlRender.prototype.constructor = controlRender;
 
 controlRender.prototype.processElement = function(data){
     if(data.colorID === undefined) return;
-    Render.prototype.processElement.call(this, data);
+    Render3D.prototype.processElement.call(this, data);
 }

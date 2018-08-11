@@ -47,10 +47,9 @@ Shadow.prototype.eventBeforeInitRenders = function(object){
     this.lightPosition = this.getObject().getModuleByClass(Light).getOptions().lights[0].position;
     
     renders["shadowRender"] = {
-        class : Render,
+        class : Render3D,
         order : -1,
         programIndex : this.programIndex,        
-        programName :  this.programIndex,
         lookAt : this.getLightLookAt(),
         loop : true,
         bgColor : [.0, .0, .0, 1.0],
