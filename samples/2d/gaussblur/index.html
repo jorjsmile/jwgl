@@ -30,14 +30,12 @@
             // debugLibrary  : "../../../node_modules/webgl-debug/index.js",
             programs : {
                 "main" : {
-                    name : "main",
                     shaders : {
                         vertex : ComplexVertexShader(),
                         fragment : ComplexFragmentShader()
                     }
                 },
                 "blur" : {
-                    "name" : "blur",
                     shaders : {
                         vertex : ComplexVertexShader(),
                         fragment : ComplexFragmentShader()
@@ -75,21 +73,21 @@
             modules  : [
                 {
                     "class" : Texture,
-                    "programNames" : ["main", "blur"]
+                    "programIndecies" : ["main", "blur"]
                 },
                 {
                     "class" : GaussianBlurFilter,
                     programIndex : "blur",
                     R : 20
                 },
-                {
-                    "class" : Snapshot,
-                    "program" : ["gaussianVBlurProgram"]
-                }
+                // {
+                //     "class" : Snapshot,
+                //     "program" : ["gaussianVBlurProgram"]
+                // }
             ],
             events : {
-                "beforeLoadShaders" : function(object, programName, vertex, fragment){
-                    if(programName !== 'main') return;
+                "beforeLoadShaders" : function(object, programIndex, vertex, fragment){
+                    if(programIndex !== 'main') return;
 
                     fragment.setVariable("gaussTexture", {location:"uniform", type : "sampler2D"});
 
@@ -99,7 +97,7 @@
         });
 
         jwgl.getModuleByClass(Texture).addListener("beforeApplyTexture", function(module, t,tex,render,model){
-             if(render.getProgram().name === 'main') return false; //skip all textures
+             if(render.getConfig().programIndex === 'main') return false; //skip all textures
 
             return true;
         });

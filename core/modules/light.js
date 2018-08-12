@@ -16,7 +16,7 @@ function Light(options){
     WGLModule.call(this, options);
     
     //names of programs that must contain light
-    var programNames = options.programNames || ["main"]
+    var programIndecies = options.programIndecies || ["main"]
     options.lightNumber = Math.min(Math.max(options.lightNumber||0, options.lights.length), 5);
     options.lights = options.lights;
 
@@ -29,7 +29,7 @@ function Light(options){
         }
     ;
 
-    this.getProgramNames = function(){ return programNames; };
+    this.getProgramIndecies = function(){ return programIndecies; };
     this.getOptions = function(){ return options; };
     this.getDefault = function(off) { return _default[off] || _default; };
     
@@ -38,17 +38,17 @@ function Light(options){
 Light.prototype = new WGLModule;
 Light.prototype.constructor = Light;
 
-Light.prototype.eventBeforeLoadShaders = function(object, programName, vertex, fragment){
-    if(!inArray(this.getProgramNames(), programName)) return;
+Light.prototype.eventBeforeLoadShaders = function(object, programIndex, vertex, fragment){
+    if(!inArray(this.getProgramIndecies(), programIndex)) return;
     this.setVertexVariables(vertex);
     this.setFragmentVariables(fragment);
 };
 
 Light.prototype.eventAfterInitRenders = function(object){
     var renders = object.getRender(),
-        programNames = this.getProgramNames();
+        programIndecies = this.getProgramIndecies();
     for(var r in renders){
-        if(!inArray(programNames, renders[r].getConfig().programName)) return;
+        if(!inArray(programIndecies, renders[r].getConfig().programIndex)) return;
         renders[r].addListener("initGL", this.initGL, this);
         renders[r].addListener("beforeDrawElements", this.beforeDrawElements, this);
         renders[r].addListener("beforeProcessElement", this.beforeProcessElement, this);        
@@ -83,7 +83,7 @@ Light.prototype.initGL = function(render){
 }
 
 Light.prototype.beforeProcessElement = function(object, data){
-    if(!inArray(this.getProgramNames(), object.getConfig().programName)) return ;
+    if(!inArray(this.getProgramIndecies(), object.getConfig().programIndex)) return ;
 
     var normalMatrix = mat4.create(),
         normalTransposed = mat4.create(),
@@ -115,7 +115,7 @@ Light.prototype.beforeProcessElement = function(object, data){
 
 Light.prototype.beforeDrawElements = function(object){
 //    console.log(object.getConfig());
-    if(!inArray(this.getProgramNames(), object.getConfig().programName)) return ;
+    if(!inArray(this.getProgramIndecies(), object.getConfig().programIndex)) return ;
     
     var lights = this.getOptions().lights || [],
         count = this.getOptions().lightNumber,

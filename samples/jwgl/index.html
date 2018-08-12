@@ -8,7 +8,7 @@
         <script type="text/javascript" src="../../core/matrix.js"></script>
         <script type="text/javascript" src="../../core/common.js"></script>
         <script type="text/javascript" src="../../core/shaders.js"></script>
-        <script type="text/javascript" src="../../core/render3d.js"></script>
+        <script type="text/javascript" src="../../core/render.js"></script>
         <script type="text/javascript" src="../../core/jwgl.js"></script>
         <script type="text/javascript" src="../../core/primitives.js"></script>
         <script type="text/javascript" src="../../core/modules/rotate.js"></script>
@@ -24,7 +24,6 @@
                 wgl = new jWGL("jwgl", {
                     programs : {
                         "main" : {
-                            name : "main",
                             shaders : {
                                 vertex : ComplexVertexShader3D(),
                                 fragment : ComplexFragmentShader()

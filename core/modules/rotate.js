@@ -20,9 +20,12 @@ function Rotate(options){
     
     this.applyRotation = function(render, index){
         var object = render.getData()[index];
-        if(object.moduleRotate === false) return;
+        if(object.moduleRotate === false) return true;
+
         render.modelViewMatrix.setMatrix(rModelViewMatrix);        
         _this.raiseEvent("afterApplyRotation");
+
+        return true;
     }
     
     this.clearRotation = function(render){

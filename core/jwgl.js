@@ -156,8 +156,7 @@ function jWGL(el, options){
         var renders = {};
         for(var r in render){
             var c = extend({}, render[r], config, {
-                program : _this.getProgram(render[r].programIndex),
-                programName : render[r].programName || defaultProgram
+                program : _this.getProgram(render[r].programIndex)
             }),
             rClass = render[r].class;
             
@@ -275,24 +274,24 @@ jWGL.prototype.initDebug = function(){
 
 /**
  * use required program
- * @param programName, name of the program to use, if it's null default one will be activated
+ * @param programIndex, name of the program to use, if it's null default one will be activated
  */
-jWGL.prototype.activateProgram = function(programName){ 
-    var p = this.getProgram(programName);
+jWGL.prototype.activateProgram = function(programIndex){
+    var p = this.getProgram(programIndex);
     
     if(p == undefined)
-        throw "Program doesn't exists";
+        throw "Program "+programIndex+" doesn't exists";
     else
         this.gl.useProgram(p.instance);            
 }
 
 /**
  * get program by name if name is null returns default program
- * @param {String} programName
+ * @param {String} programIndex
  * @return {Shape}
  */
-jWGL.prototype.getProgram = function(programName){
-    return programName == undefined? this.getPrograms()[this.getDefaultProgram()] : this.getPrograms()[programName];
+jWGL.prototype.getProgram = function(programIndex){
+    return programIndex == undefined? this.getPrograms()[this.getDefaultProgram()] : this.getPrograms()[programIndex];
 }
 
 /**
@@ -316,9 +315,11 @@ jWGL.prototype.run = function(){
     this.raiseEvent("beforeRun");
     var renders = this.getRender(),
         rendersOrder = [];
+
+
     for(var r in renders){
         var c = renders[r].getConfig();
-        this.activateProgram(c.programName);
+        this.activateProgram(c.programIndex);
         rendersOrder.push({ name : r, o : c.order||0 });
         renders[r].init();
 //        renders[r].process();
@@ -337,7 +338,7 @@ jWGL.prototype.loopFunc = function(){
             // if(_this.rendersOrder[r]["name"] == "main" && _this.ticks % 2 === 0) continue;
             var render = renders[_this.rendersOrder[r]["name"]];
             if( render.getConfig().loop ){
-                _this.activateProgram(render.getConfig().programName);
+                _this.activateProgram(render.getConfig().programIndex);
                 _this.raiseEvent("beforeRenderProcess", render);
                 render.process();
                 _this.raiseEvent("afterRenderProcess", render);

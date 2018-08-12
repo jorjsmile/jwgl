@@ -21,7 +21,7 @@ function Texture(options){
     
     var perObject = options.perObject || 5,
         mixingMethod = options.mixingMode || "*",
-        programNames = options.programNames || ["main"],
+        programIndecies = options.programIndecies || ["main"],
         flipY = true;
     ;
 
@@ -29,7 +29,7 @@ function Texture(options){
         return perObject;
     };
     
-    this.getProgramNames = function(){ return programNames; };
+    this.getProgramIndecies = function(){ return programIndecies; };
 
     
     this.getMixingMethod = function (){ return mixingMethod; };
@@ -114,22 +114,29 @@ Texture.prototype.initMaxTexCount = function(object) {
 };
 
 Texture.prototype.eventAfterInitRenders = function(object){
-    if(this._maxTexCount == 0) return ;
+    if(this._maxTexCount === 0) return ;
 
     var renders = object.getRender(),
-        programNames = this.getProgramNames();
-        
+        programIndecies = this.getProgramIndecies();
+
     for(var r in renders){
-        if(!inArray(programNames, renders[r].getConfig().programName)) return;
+
+        /**
+         * In case when you load textures manually and forget to unload it by yourself,
+         * afterProcessElement event will make it for u. It will check for textureCount,
+         * so don't mind
+         */
+        renders[r].addListener("afterProcessElement", this.afterProcessElement, this);
+
+        if(!inArray(programIndecies, renders[r].getConfig().programIndex)) continue;
         renders[r].addListener("beforeProcessElement", this.beforeProcessElement, this);      
-        renders[r].addListener("afterProcessElement", this.afterProcessElement, this);           
     }
 };
 
 Texture.prototype.eventAfterInitRenderElement = function(object, data){
     if(this._maxTexCount == 0) return ;
 
-//    if(!inArray(this.getProgramNames(), object.getConfig().programName)) return;
+//    if(!inArray(this.getProgramIndecies(), object.getConfig().programIndex)) return;
     data.textures = object.registerBuffer(new Float32Array(data.textures), object.gl.ARRAY_BUFFER);    
 };
 
@@ -139,6 +146,7 @@ Texture.prototype.bindTexture = function(object, variable, texture){
 
     object.textureCount = object.textureCount || 0;
 
+    // console.log(object.getConfig().programIndex, object.textureCount);
     gl.uniform1i(fragment[variable], object.textureCount );
     gl.activeTexture(gl.TEXTURE0 + object.textureCount);
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -146,7 +154,7 @@ Texture.prototype.bindTexture = function(object, variable, texture){
 };
 
 Texture.prototype.beforeProcessElement = function(object, data){
-    if(!inArray(this.getProgramNames(), object.getProgram().name)) return;
+    if(!inArray(this.getProgramIndecies(), object.getConfig().programIndex)) return;
 
     object.textureCount = object.textureCount || 0;
     var gl = object.getGL(),
@@ -194,7 +202,9 @@ Texture.prototype.beforeProcessElement = function(object, data){
 
 Texture.prototype.afterProcessElement = function(object, data){
 //    console.log(1);
-    if(!inArray(this.getProgramNames(), object.getConfig().programName)) return;
+//     console.log(object.getConfig().programIndex, object.textureCount);
+
+    if(object.textureCount === undefined || object.textureCount <= 0) return;
 
     var gl = object.getGL();
 
@@ -240,14 +250,14 @@ Texture.prototype.initTexture = function(gl, image, texture){
     return object;
 };
 
-Texture.prototype.eventBeforeLoadShaders = function(object, programName, vertex, fragment){
+Texture.prototype.eventBeforeLoadShaders = function(object, programIndex, vertex, fragment){
 
     this.initMaxTexCount(object);
 
     if(this._maxTexCount == 0) return ;
 
 
-    if(!inArray(this.getProgramNames(), programName)) return;
+    if(!inArray(this.getProgramIndecies(), programIndex)) return;
 
     this.setVertexVariables(vertex);
     this.setFragmentVariables(fragment);

@@ -4,7 +4,7 @@ function Control(options){
     var restrictedColors = options.restrictedColors || [],
         currentImage = null,
         selectedIndex = -1,
-        programName = options.program || "main",
+        programIndex = options.program || "main",
         boundingColor = options.boundingColor || [.5, .5, .5, 1.0],
         c = this.getOptions();
     
@@ -18,7 +18,7 @@ function Control(options){
     }
     c.renderBG = c.renderBG || [1.0, 1.0, 1.0, 1.0];
     
-    this.getProgramName = function(){ return programName; };
+    this.getProgramIndex = function(){ return programIndex; };
     this.getBoundingColor = function(){ return boundingColor; };
     this.getRestrictedColors = function(){ return restrictedColors;  };
     this.setRestrictedColor = function(color){ 
@@ -73,7 +73,6 @@ Control.prototype.eventBeforeInitRenders = function(object){
     renders["controlRender"] = {
         class : controlRender,
         programIndex : this.programIndex,        
-        programName :  this.programIndex,
         loop : false,
         bgColor : o.renderBG,
         clear : [gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT],
@@ -112,14 +111,14 @@ Control.prototype.eventBeforeInitRenders = function(object){
     };
 };
 
-Control.prototype.eventBeforeLoadShaders = function(object, programName, vertex, fragment){
-//    console.log(this.getProgramName() === programName);
-    if( this.getProgramName() !== programName ) return;
+Control.prototype.eventBeforeLoadShaders = function(object, programIndex, vertex, fragment){
+//    console.log(this.getProgramIndex() === programName);
+    if( this.getProgramIndex() !== programIndex ) return;
     this.setFragmentVariables(fragment);
 }
 
 Control.prototype.eventAfterInitRenders = function(object){
-    var render = object.getRenderByProgram(this.getProgramName());
+    var render = object.getRenderByProgram(this.getProgramIndex());
     render.addListener("afterProcessElement", this.afterProcessElement, this);        
     render.addListener("afterDrawElements", this.afterDrawElements, this);        
 };

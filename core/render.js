@@ -50,6 +50,7 @@ Render.prototype.initGL = function(){
     if(this.getConfig().renderToFrame)
         this.frameInit();
 }
+
 Render.prototype.initRenderMode = function(gl){
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.FRONT);
@@ -187,10 +188,8 @@ Render.prototype.process = function(){
     this.raiseEvent("beforeDrawElements");
 
     for(var k in data){
-        // if( !
-        this.raiseEvent("beforeDrawElement", k)
-        // )
-        // continue;
+        if( !this.raiseEvent("beforeDrawElement", k) )
+            continue;
 
         data[k].modelMatrix = mat4.create();
         mat4.identity(data[k].modelMatrix);

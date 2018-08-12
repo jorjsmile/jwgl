@@ -73,11 +73,11 @@ Snapshot.prototype.eventAfterInitRenders = function(object){
 
 Snapshot.prototype.snapPicture = function(object){
     
-    var programName = object.getProgram().name,
+    var programIndex = object.getConfig().programIndex,
         gl = object.getGL();
 
 
-    if(this.couldSnap(programName)){
+    if(this.couldSnap(programIndex)){
         var w = gl.drawingBufferWidth,
             h = gl.drawingBufferHeight,
             buffer = new Uint8Array(w*h*4),
@@ -99,11 +99,11 @@ Snapshot.prototype.snapPicture = function(object){
         context.putImageData(contextData, 0, 0);
         
         
-        this.shots[programName] = tempcanvas.toDataURL("image/png");
+        this.shots[programIndex] = tempcanvas.toDataURL("image/png");
         if(this.getToImage() )
-            this.displayImage(programName);
+            this.displayImage(programIndex);
 
-        this.lookForSnaps(programName);
+        this.lookForSnaps(programIndex);
 
     }
 
@@ -142,7 +142,7 @@ Snapshot.prototype.snapFrames = function(){
     for(var r in renders){
         var rC = renders[r].getConfig();
         if(rC.loop === false || rC.renderToFrame){
-            object.activateProgram(rC.programName);
+            object.activateProgram(rC.programIndex);
             if(rC.renderToFrame)
                 renders[r].frameOn();
             this.snapPicture(renders[r]);

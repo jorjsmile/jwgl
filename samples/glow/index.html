@@ -17,8 +17,7 @@
     <script  type="text/javascript" src="../../core/matrix.js"></script>
     <script  type="text/javascript" src="../../core/jwgl.js"></script>
     <script  type="text/javascript" src="../../core/shaders.js"></script>
-    <script  type="text/javascript" src="../../core/render2d.js"></script>
-    <script  type="text/javascript" src="../../core/render3d.js"></script>
+    <script  type="text/javascript" src="../../core/render.js"></script>
     <script  type="text/javascript" src="../../core/primitives.js"></script>
     <script  type="text/javascript" src="../../core/modules/texture.js"></script>
     <script  type="text/javascript" src="../../core/modules/rotate.js"></script>
@@ -37,36 +36,70 @@
             addSphere = function(move, color){
                 return new Sphere(1, 30, 30, {
                     translate : move,
-                    material : sphereMaterial(color)
+                    material : sphereMaterial(color),
+                    glowElement : true
                 });
+            },
+            scene3d = function(){
+                return {
+                    class : Render3D,
+                    programIndex : "3dscene",
+                    bgColor : [.8, .8, .8, 1.0],
+                    lookAt: {position : [.0,0.0, 20.0], lookPoint:[.0,.0,.0], up : [.0, 1.0, .0]},
+                };
             };
+
+        console.log(
+            extend( scene3d(), {
+                "events": {
+                    "beforeDrawElement": function (render, dI) {
+                        if (render.getData()[dI].glowElement === undefined) return false;
+
+                        return true;
+                    }
+                }
+            })
+        );
 
         function go(){
             jwgl = new jWGL("glow", {
                 programs : {
-                    "main" : {
-                        name : "main",
+                    "3dscene" : {
                         shaders : {
                             vertex : ComplexVertexShader3D(),
                             fragment : ComplexFragmentShader()
                         }
                     },
-                    // "gauss" : {
-                    //     name : "gauss",
-                    //     shaders : {
-                    //         vertex : ComplexVertexShader3D(),
-                    //         fragment : ComplexFragmentShader()
-                    //     }
-                    // }
+
                 },
 
                 render : {
-                    "main":{
-                        class : Render3D,
-                        programIndex : "main",
-                        bgColor : [.8, .8, .8, 1.0],
-                        lookAt: {position : [.0,0.0, 20.0], lookPoint:[.0,.0,.0], up : [.0, 1.0, .0]},
-                        // events: {
+                    "main": extend( scene3d(), {
+                        "events" : {
+                            "beforeDrawElement" : function(render, dI){
+                                if( render.getData()[dI].glowElement === undefined  ) return false;
+
+                                return true;
+                            }
+                        }
+
+                    }),
+                    // "fullScene" : extend(scene3d(), {
+                    //     renderToFrame : true,
+                    //     order : -0.1,
+                    //     frames : [
+                    //         {
+                    //             type : "texturebuffer"
+                    //         },
+                    //         {
+                    //             type : "renderbuffer"
+                    //         }
+                    //     ]
+                    // })
+
+                    //main
+                    /**
+                     *     // events: {
                         //     "beforeProcessElement" : function(o, data) {
                         //         var textureModule = jwgl.getModuleByClass(Texture),
                         //             texture = jwgl.getModuleByClass(GaussianBlurFilter).getResultTexture();
@@ -76,7 +109,8 @@
                         //     }
                         // }
 
-                    }
+                     */
+
                 },
                 data : [
                     new Cylinder(10, 1, 1, 60, {

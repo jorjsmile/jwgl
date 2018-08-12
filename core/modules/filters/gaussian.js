@@ -115,13 +115,13 @@ GaussianBlurFilter.prototype.beforeDrawGaussRender = function(){
                 textureModule = _that.getObject().getModuleByClass(Texture);
 
             textureModule.bindTexture(object, "blur", texture);
+            return true;
         };
     }
 };
 
 GaussianBlurFilter.prototype.getProgram = function(name, fragmentShader){
     return {
-        "name" : name,
         "shaders" : {
             "vertex" : {
                 "class": GaussianBlurVertexShader

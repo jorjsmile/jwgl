@@ -7,10 +7,10 @@
 function Shadow(options){
     WGLModule.call(this, options);
     
-    var programName = options.programName || "main",
+    var programIndex = options.programIndex || "main",
         sceneView = options.sceneView || {type:"perspective", angle: 60, nearPlane:1.0, farPlane: 100.0 };
 
-    this.getProgramName = function(){ return programName; };
+    this.getProgramIndex = function(){ return programIndex; };
     this.getSceneView = function(){ return sceneView; };
     this.setSceneView = function(sV){ sceneView = sV; };
     this.programIndex = "shadow";
@@ -77,7 +77,7 @@ Shadow.prototype.eventBeforeInitRenders = function(object){
 };
 
 Shadow.prototype.eventAfterInitRenders = function(object){
-    var render = object.getRenderByProgram(this.getProgramName());
+    var render = object.getRenderByProgram(this.getProgramIndex());
     render.addListener("beforeProcessElement", this.beforeProcessElement, this);
 };
 
@@ -102,7 +102,7 @@ Shadow.prototype.eventBeforeInit = function(object){
     var programs = object.getPrograms(),
         renders = object.getRender(),//returns only configs of the render
         sceneView = {},
-        prName = this.getProgramName();
+        prName = this.getProgramIndex();
        
 
     /** get renders sceneView */
@@ -110,7 +110,7 @@ Shadow.prototype.eventBeforeInit = function(object){
         sceneView = renders.sceneView !== undefined? renders.sceneView : null;
     else if(renders.length !== undefined){
         for(var r in renders){
-            if(renders[r].programName === prName || renders[r].programIndex === prName)
+            if(renders[r].programIndex === prName)
                 sceneView = renders[r].sceneView !== undefined? renders[r].sceneView : null;
         }
     }
@@ -132,8 +132,8 @@ Shadow.prototype.eventBeforeInit = function(object){
     };
 }
 
-Shadow.prototype.eventBeforeLoadShaders = function(object, programName, vertex, fragment){
-    if( this.getProgramName() !== programName ) return;
+Shadow.prototype.eventBeforeLoadShaders = function(object, programIndex, vertex, fragment){
+    if( this.getProgramIndex() !== programIndex ) return;
     this.setVertexVariables(vertex);
     this.setFragmentVariables(fragment);
 };

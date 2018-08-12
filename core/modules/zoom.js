@@ -73,8 +73,8 @@ Zoom.prototype.eventAfterInitRenders = function(object){
     var renders = object.getRender();
     for(var r in renders){
         if(renders[r].moduleZoom === false) continue;
-        console.log(renders[r].getOptions().programName);
-        if(!inArray(this.getPrograms(), renders[r].getOptions().programName)) continue;
+        console.log(renders[r].getOptions().programIndex);
+        if(!inArray(this.getPrograms(), renders[r].getOptions().programIndex)) continue;
         
         renders[r].addListener("initGL", this.enableGLStates);
         renders[r].addListener("beforeProcess", this.applyZoom);
