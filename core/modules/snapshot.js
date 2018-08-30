@@ -142,7 +142,7 @@ Snapshot.prototype.snapFrames = function(){
     for(var r in renders){
         var rC = renders[r].getConfig();
         if(rC.loop === false || rC.renderToFrame){
-            object.activateProgram(rC.programIndex);
+            renders[r].getGL().useProgram( renders[r].getProgram().instance );
             if(rC.renderToFrame)
                 renders[r].frameOn();
             this.snapPicture(renders[r]);

@@ -11,12 +11,12 @@ function Rotate(options){
 //        console.log(_this.xAngle, _this.yAngle);
         _this.makeRotation(rModelViewMatrix);
         _this.raiseEvent("afterPrepareRotation");
-    }
+    };
     
     this.makeRotation = function(m){
         mat4.rotateX(m, m, _this.xAngle);
         mat4.rotateY(m, m, _this.yAngle);
-    }
+    };
     
     this.applyRotation = function(render, index){
         var object = render.getData()[index];
@@ -26,7 +26,7 @@ function Rotate(options){
         _this.raiseEvent("afterApplyRotation");
 
         return true;
-    }
+    };
     
     this.clearRotation = function(render){
         render.modelViewMatrix.setMatrix(modelViewMatrix);
@@ -85,22 +85,11 @@ Rotate.prototype.eventAfterInitRenders = function(object){
     var renders = object.getRender();
 //    console.log(renders);
     for(var r in renders){
-        if(renders[r].moduleRotate === false) continue;
-        renders[r].addListener("initGL", this.enableGLStates);
+        if(renders[r].getConfig().moduleRotate === false
+         || !(renders[r] instanceof Render3D))
+            continue;
         renders[r].addListener("beforeDrawElements", this.prepareRotation);
         renders[r].addListener("beforeDrawElement", this.applyRotation);
         renders[r].addListener("afterDrawElements", this.clearRotation);
     }
-};
-
-Rotate.prototype.enableGLStates = function(render){
-    var gl = render.getGL();
-    if(!gl.isEnabled(gl.DEPTH_TEST)){
-        gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.LESS);
-    }
-    
-
-    
-    render.getConfig().clear.push ( render.getGL().DEPTH_BUFFER_BIT );
 };

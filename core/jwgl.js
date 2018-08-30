@@ -46,6 +46,8 @@ function jWGL(el, options){
         defaultProgram = options["defaultProgram"] || "main",
         render = options.render || Render3D,
         _this = this;
+
+
     
     /************************** Private methods **************************/
     
@@ -118,18 +120,9 @@ function jWGL(el, options){
         _this.sync(syncList, callback);
     }
 
-    var initRenderElement = function(gl, data){
-        // console.log(data);
-        _this.raiseEvent("beforeInitRenderElement", data);
-        data.vertices = _this.registerBuffer(new Float32Array(data.vertices), gl.ARRAY_BUFFER);
-        data.indices = _this.registerBuffer(new Uint16Array(data.indices), gl.ELEMENT_ARRAY_BUFFER );
-        _this.raiseEvent("afterInitRenderElement", data);
-        return data;
-    }
-
     var initRenderData = function(callback, gl){        
          for(var i in options.data){
-            _this.data[i] = initRenderElement(gl, options.data[i]);            
+            _this.data[i] = _this.initRenderElement(gl, options.data[i]);
         }        
         _this.raiseSyncEvent("afterInitRenderData", callback);
     };
@@ -138,8 +131,8 @@ function jWGL(el, options){
         
         var config = {
             el : el,
-            gl : _this.gl,
-            data : _this.data
+            gl : _this.gl//,
+            // data : _this.data
         };
         
         if(typeof(render) != "object"){
@@ -155,11 +148,16 @@ function jWGL(el, options){
 
         var renders = {};
         for(var r in render){
+
             var c = extend({}, render[r], config, {
-                program : _this.getProgram(render[r].programIndex)
-            }),
-            rClass = render[r].class;
-            
+                    program : _this.getProgram(render[r].programIndex)
+                }),
+                rClass = render[r].class;
+
+            if(c.data === undefined)
+                c.data = _this.data;
+
+
             renders[r] = new rClass(c);
         }
         
@@ -181,6 +179,11 @@ function jWGL(el, options){
 
         }
     };
+    this.createDataBuffers = function(data){
+        data.vertices = _this.registerBuffer(new Float32Array(data.vertices), this.gl.ARRAY_BUFFER);
+        data.indices = _this.registerBuffer(new Uint16Array(data.indices), this.gl.ELEMENT_ARRAY_BUFFER );
+        return data;
+    },
     this.clearData = function(){ 
         while(this.data.length > 0) this.data.shift();
     };
@@ -203,8 +206,18 @@ function jWGL(el, options){
                 initRender(_this.run); 
             } );
         
-    }
-    
+    };
+    this.initRenderElement = function(gl, data){
+        // console.log(data);
+        _this.raiseEvent("beforeInitRenderElement", data);
+        _this.createDataBuffers(data);
+        _this.raiseEvent("afterInitRenderElement", data);
+
+        return data;
+    };
+
+
+    this.ticksLimit = options.ticksLimit || -1;
     this.data = [];
     this.gl = {};
     //for now there is now other way to determine version of working webgl,
@@ -276,14 +289,14 @@ jWGL.prototype.initDebug = function(){
  * use required program
  * @param programIndex, name of the program to use, if it's null default one will be activated
  */
-jWGL.prototype.activateProgram = function(programIndex){
-    var p = this.getProgram(programIndex);
-    
-    if(p == undefined)
-        throw "Program "+programIndex+" doesn't exists";
-    else
-        this.gl.useProgram(p.instance);            
-}
+// jWGL.prototype.activateProgram = function(programIndex){
+//     var p = this.getProgram(programIndex);
+//
+//     if(p == undefined)
+//         throw "Program "+programIndex+" doesn't exists";
+//     else
+//         this.gl.useProgram(p.instance);
+// }
 
 /**
  * get program by name if name is null returns default program
@@ -295,21 +308,15 @@ jWGL.prototype.getProgram = function(programIndex){
 }
 
 /**
- * @param {Object} info
- *          <br/> - {String} offset - offset in main data object
- *          <br/> - {String} name - name of the buffer to register
- *          <br/> - {Uint16Array|Float32Array|...} data - data to register ()
- *          <br/> - {ELEMENT_ARRAY_BUFFER|ARRAY_BUFFER} type - array destination type
- *          <br/> - {Number} elementLength - length of one element
- *          <br/> - {Number} count - number of elements
- * @returns {undefined}
+ * @param data
+ * @param type
  */
 jWGL.prototype.registerBuffer = function(data, type){    
     var b = this.gl.createBuffer();
     this.gl.bindBuffer(type, b);    
     this.gl.bufferData(type, data, this.gl.STATIC_DRAW);
     return b;
-}
+};
 
 jWGL.prototype.run = function(){
     this.raiseEvent("beforeRun");
@@ -319,7 +326,7 @@ jWGL.prototype.run = function(){
 
     for(var r in renders){
         var c = renders[r].getConfig();
-        this.activateProgram(c.programIndex);
+        // this.activateProgram(c.programIndex);
         rendersOrder.push({ name : r, o : c.order||0 });
         renders[r].init();
 //        renders[r].process();
@@ -334,17 +341,21 @@ jWGL.prototype.loopFunc = function(){
     var _this = this,
         renders = this.getRender();
     window.requestAnimationFrame(function(){
+        // console.log(_this.ticks);
         for(var r in _this.rendersOrder){
-            // if(_this.rendersOrder[r]["name"] == "main" && _this.ticks % 2 === 0) continue;
             var render = renders[_this.rendersOrder[r]["name"]];
+            // console.log(r, _this.rendersOrder[r]["name"]);
             if( render.getConfig().loop ){
-                _this.activateProgram(render.getConfig().programIndex);
                 _this.raiseEvent("beforeRenderProcess", render);
                 render.process();
                 _this.raiseEvent("afterRenderProcess", render);
             }
         }
         ++_this.ticks;
-        _this.loopFunc();
+        if(_this.ticksLimit !== -1 && _this.ticksLimit < _this.ticks)
+            return;
+        else
+            _this.loopFunc();
+
     }, _this.getEl());
 };

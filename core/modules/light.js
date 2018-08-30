@@ -48,8 +48,7 @@ Light.prototype.eventAfterInitRenders = function(object){
     var renders = object.getRender(),
         programIndecies = this.getProgramIndecies();
     for(var r in renders){
-        if(!inArray(programIndecies, renders[r].getConfig().programIndex)) return;
-        renders[r].addListener("initGL", this.initGL, this);
+        if(!inArray(programIndecies, renders[r].getConfig().programIndex)) continue;
         renders[r].addListener("beforeDrawElements", this.beforeDrawElements, this);
         renders[r].addListener("beforeProcessElement", this.beforeProcessElement, this);        
     }
@@ -70,17 +69,6 @@ Light.prototype.eventAfterInitRenderElement = function(object, data){
 //            type : object.gl.ARRAY_BUFFER
 //        });
 };
-
-Light.prototype.initGL = function(render){
-    var gl = render.getGL();
-    if(!gl.isEnabled(gl.DEPTH_TEST))
-        gl.enable(gl.DEPTH_TEST);
-
-    if(gl.isEnabled(gl.BLEND))
-        gl.disable(gl.BLEND);
-
-    render.getConfig().clear.push ( render.getGL().DEPTH_BUFFER_BIT );
-}
 
 Light.prototype.beforeProcessElement = function(object, data){
     if(!inArray(this.getProgramIndecies(), object.getConfig().programIndex)) return ;

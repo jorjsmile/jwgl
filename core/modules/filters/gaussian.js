@@ -19,6 +19,9 @@ function GaussianBlurFilter(info){
     };
 
     this.getSourceProgram =  function(){ return srcProgram; };
+    this.getSourceRender =  function(){ return srcRender; };
+    this.setSourceRender = function(srcName){ srcRender = srcName; };
+
 }
 
 GaussianBlurFilter.prototype = new WGLModule();
@@ -35,7 +38,7 @@ GaussianBlurFilter.prototype.eventBeforeInit = function(){
 
 
     this.initPrograms(ps);
-    this.initRenders(rs);
+    this.initRenders(rs, jwgl);
 };
 
 GaussianBlurFilter.prototype.initPrograms = function(programs){
@@ -44,9 +47,10 @@ GaussianBlurFilter.prototype.initPrograms = function(programs){
 
 };
 
-GaussianBlurFilter.prototype.initRenders = function(renders){
-    var srcProgram = this.getSourceProgram(),
-        srcRender = srcRender? renders[srcRender] : {},
+GaussianBlurFilter.prototype.initRenders = function(renders, jwgl){
+    var
+        srcProgram = this.getSourceProgram(),
+        index = this.getSourceRender(),
         frames = function(){ return [
             {
                 type : "texturebuffer"
@@ -54,16 +58,23 @@ GaussianBlurFilter.prototype.initRenders = function(renders){
             {
                 type : "renderbuffer"
             }
-        ]};
+        ]},
+        mainRender = {
+            renderToFrame : true,
+            order : -1.0,
+            frames : frames()
+        };
 
-    renders["_gaussSrc"] = extend({
-        renderToFrame : true,
-        order : -1.0,
-        frames : frames(),
-        programIndex: srcProgram
-    }, srcRender, {
-        class : Render2D
-    });
+        if(index){
+            renders[index] = extend(mainRender, renders[index]);
+        }
+        else{
+            this.setSourceRender("_gaussSrc");
+            renders["_gaussSrc"] = extend(mainRender, {
+                "programIndex": srcProgram,
+                "class" : Render2D
+            });
+        }
 
     renders["_gaussVRender"] = {
         "class" : Render2D,
@@ -72,8 +83,16 @@ GaussianBlurFilter.prototype.initRenders = function(renders){
         "order" : -.9,
         frames : frames(),
         "events" : {
-            "beforeDrawElement" : this.beforeDrawGaussRender()("_gaussVRender")
-        }
+            "beforeDrawElement" : this.beforeDrawGaussRender()("_gaussVRender"),
+            "beforeProcessElement" : function(object, data){
+                var textureModule = jwgl.getModuleByClass(Texture);
+
+                textureModule.applyTextureAttribute(object.getGL(), data, object.getVShader());
+            }
+        },
+        "data" : [
+            this.provideDrawingPlane(jwgl)
+        ]
     };
 
     //HBlur
@@ -84,16 +103,29 @@ GaussianBlurFilter.prototype.initRenders = function(renders){
         "order" : -.8,
         frames : frames(),
         "events" : {
-            "beforeDrawElement" : this.beforeDrawGaussRender()("_gaussHRender")
-        }
+            "beforeDrawElement" : this.beforeDrawGaussRender()("_gaussHRender"),
+            "beforeProcessElement" : function(object, data){
+                var textureModule = jwgl.getModuleByClass(Texture);
+
+                textureModule.applyTextureAttribute(object.getGL(), data, object.getVShader());
+            }
+        },
+        "data" : [
+            this.provideDrawingPlane(jwgl)
+        ]
     };
+};
+
+GaussianBlurFilter.prototype.provideDrawingPlane = function(jwgl)
+{
+    return jwgl.initRenderElement(jwgl.gl, new Plane(2,2));
 };
 
 GaussianBlurFilter.prototype.getPreviousRenderTexture = function(current){
     switch(current){
         case '_gaussVRender' :
             //get src render texture
-            return this.getObject().getRender("_gaussSrc").getConfig().frames[0].instance;
+            return this.getObject().getRender(this.getSourceRender()).getConfig().frames[0].instance;
         case '_gaussHRender' :
             //get gaussVRender texture
             return this.getObject().getRender("_gaussVRender").getConfig().frames[0].instance;
@@ -110,7 +142,7 @@ GaussianBlurFilter.prototype.getResultTexture = function(){
 GaussianBlurFilter.prototype.beforeDrawGaussRender = function(){
     var _that = this;
     return function( renderName ){
-        return function(object, data){
+        return function(object, i){
             var texture = _that.getPreviousRenderTexture(renderName),
                 textureModule = _that.getObject().getModuleByClass(Texture);
 
@@ -161,15 +193,17 @@ function GaussianBlurVertexShader(config){
     Shader.call(this, config);
     var c = this.getConfig();
 
-    c.source = "attribute vec3 position;\n\
-                    attribute vec2 textures;\n\
-                    \n\
-                    varying vec2 vTex;\n\
-                    \n\
-                    void main(){\n\
-                        vTex = textures;\n\
-                        gl_Position = vec4(position, 1.0);\n\
-                    }";
+    c.source = "\
+    attribute vec3 position;\n\
+    attribute vec2 texture;\n\
+    \n\
+    varying vec2 vTex;\n\
+    \n\
+    void main(){\n\
+        vTex = texture;\n\
+        gl_Position = vec4(position, 1.0);\n\
+    }\
+    ";
 }
 
 GaussianBlurVertexShader.prototype = new Shader();

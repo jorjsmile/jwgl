@@ -9,6 +9,8 @@
             border: 1px solid #aaa;
             display:block;
             margin: 10px auto 0px;
+            width: 800px;
+            height : 600px;
         }
     </style>
     <script type="text/javascript" src="../../node_modules/gl-matrix/dist/gl-matrix.js"></script>
@@ -23,46 +25,39 @@
     <script  type="text/javascript" src="../../core/modules/rotate.js"></script>
     <script  type="text/javascript" src="../../core/modules/light.js"></script>
     <script  type="text/javascript" src="../../core/modules/filters.js"></script>
+    <script  type="text/javascript" src="../../core/modules/filters/gaussian.js"></script>
+    <script  type="text/javascript" src="../../core/modules/snapshot.js"></script>
     <script>
         var jwgl = null;
         var spheresDist = 5,
+            bgColor = [.8, .8, .8, 1.0],
             sphereMaterial = function(color){
                 return {
                     ambient : [1.0, 1.0, 1.0],
                     diffuse : color,
-                    specular : [.5, .5, .5],
+                    specular : [1.0, 1.0, 1.0],
                 };
             },
             addSphere = function(move, color){
+
                 return new Sphere(1, 30, 30, {
                     translate : move,
                     material : sphereMaterial(color),
-                    glowElement : true
+                    glowElement : [color[0], color[1], color[2], 1.0]
                 });
             },
-            scene3d = function(){
+            scene3d = function(program, bg){
                 return {
                     class : Render3D,
-                    programIndex : "3dscene",
-                    bgColor : [.8, .8, .8, 1.0],
+                    programIndex : program,
+                    bgColor : bg || bgColor,
                     lookAt: {position : [.0,0.0, 20.0], lookPoint:[.0,.0,.0], up : [.0, 1.0, .0]},
                 };
             };
 
-        console.log(
-            extend( scene3d(), {
-                "events": {
-                    "beforeDrawElement": function (render, dI) {
-                        if (render.getData()[dI].glowElement === undefined) return false;
-
-                        return true;
-                    }
-                }
-            })
-        );
-
         function go(){
             jwgl = new jWGL("glow", {
+                // ticksLimit : 10,
                 programs : {
                     "3dscene" : {
                         shaders : {
@@ -70,46 +65,74 @@
                             fragment : ComplexFragmentShader()
                         }
                     },
-
+                    "gaussScene" : {
+                        shaders : {
+                            vertex : ComplexVertexShader3D(),
+                            fragment : ComplexFragmentShader()
+                        }
+                    },
+                    "main" : {
+                        shaders : {
+                            vertex : ComplexVertexShader(),
+                            fragment : ComplexFragmentShader()
+                        }
+                    }
                 },
-
                 render : {
-                    "main": extend( scene3d(), {
+                    "gauss": extend( scene3d("gaussScene", [1.0, 1.0, 1.0, 1.0]), {
                         "events" : {
                             "beforeDrawElement" : function(render, dI){
-                                if( render.getData()[dI].glowElement === undefined  ) return false;
+                                // return render.getData()[dI].glowElement !== undefined;
+                                var fragment = render.getFShader();
 
+                                render.getGL().uniform4fv(fragment.glowElement, render.getData()[dI].glowElement || [1.0, 1.0, 1.0, 1.0]);
                                 return true;
                             }
                         }
 
                     }),
-                    // "fullScene" : extend(scene3d(), {
-                    //     renderToFrame : true,
-                    //     order : -0.1,
-                    //     frames : [
-                    //         {
-                    //             type : "texturebuffer"
-                    //         },
-                    //         {
-                    //             type : "renderbuffer"
-                    //         }
-                    //     ]
-                    // })
+                    "fullScene" : extend(scene3d("3dscene"), {
+                        renderToFrame : true,
+                        order : -0.1,
+                        frames : [
+                            {
+                                type : "texturebuffer"
+                            },
+                            {
+                                type : "renderbuffer"
+                            }
+                        ]
+                    }),
+                    "main" : {
+                        /**
+                         * See also after init renders. We actually replace all data from being rendered
+                         * in main render
+                         */
+                        "class" : Render2D,
+                        "programIndex" : "main",
+                        "moduleRotate" : false,
+                        events: {
+                            "beforeProcessElement" : function(o, data) {
 
-                    //main
-                    /**
-                     *     // events: {
-                        //     "beforeProcessElement" : function(o, data) {
-                        //         var textureModule = jwgl.getModuleByClass(Texture),
-                        //             texture = jwgl.getModuleByClass(GaussianBlurFilter).getResultTexture();
-                        //
-                        //         textureModule.bindTexture(o, "gaussTexture", texture);
-                        //         return true;
-                        //     }
-                        // }
+                                var
+                                    textureModule = jwgl.getModuleByClass(Texture),
+                                    fullScene = jwgl.getRender("fullScene").getConfig().frames[0].instance//,
+                                    gaussTex = jwgl.getModuleByClass(GaussianBlurFilter).getResultTexture();
+                                    // gaussTex = jwgl.getModuleByClass(GaussianBlurFilter).getPreviousRenderTexture("_gaussVRender");
+                                // ;
+                                textureModule.applyTextureAttribute(o.getGL(), data, o.getVShader());
 
-                     */
+                                textureModule.bindTexture(o, "fullSceneTexture", fullScene);
+                                textureModule.bindTexture(o, "gauss", gaussTex);
+
+
+                                return true;
+                            }
+                        },
+                        data : [
+                            new Plane(2,2)
+                        ]
+                    }
 
                 },
                 data : [
@@ -137,19 +160,59 @@
                         }
                     })
                 ],
-                events : {
-                    // "beforeLoadShaders" : function(object, programName, vertex, fragment){
-                    //     if(programName !== 'main') return;
-                    //
-                    //     fragment.setVariable("gaussTexture", {location:"uniform", type : "sampler2D"});
-                    //
-                    //     fragment.setColorExpression("texture2D(gaussTexture,vTexture)");
-                    // }
-                }
 
             });
 
+            jwgl.addListener("beforeLoadShaders", function(object, programIndex, vertex, fragment){
+                if(programIndex === 'main'){
+
+                    // console.log(vertex);
+                    vertex.setVariable("texture", {location:"attribute", type:"vec2"});
+                    vertex.setVariable("vTexture", {location: "varying", type:"vec2"});
+
+                    var main = vertex.getFunction("main");
+                    main.expressions = main.expressions || [];
+                    main.expressions.push(
+                        new Expression({prefix : "vTexture = ", elements :[ "texture" ], operator:"*", suffix: ";"})
+                    );
+
+                    fragment.setVariable("vTexture", {location: "varying", type:"vec2"});
+                    fragment.setVariable("fullSceneTexture", {location:"uniform", type : "sampler2D"});
+                    fragment.setVariable("gauss", {location:"uniform", type : "sampler2D"});
+                    fragment.setColorExpression("texture2D(fullSceneTexture,vTexture)");
+                    fragment.setColorExpression("texture2D(gauss,vTexture)");
+
+                }
+                if(programIndex === "gaussScene"){
+                    fragment.setVariable("glowElement", {location : "uniform", type:"vec4"});
+
+                    fragment.setColorExpression("glowElement");
+                }
+
+                return;
+            });
+
+            jwgl.addListener("afterInitRenders", function(jwgl){
+                var mainRender = jwgl.getRender("main");
+
+                mainRender.setData(
+                    [ jwgl.initRenderElement(jwgl.gl, new Plane(2,2)) ]
+                );
+            });
+
             jwgl.assignModules([
+
+                {
+                    "class" : Texture,
+                    "programIndecies" : [],
+                    // "maxTexCount" : 1
+                },
+
+                {
+                    "class" : GaussianBlurFilter,
+                    render : "gauss",
+                    R : 30
+                },
                 Rotate,
                 {
                     "class" : Light,
@@ -157,18 +220,17 @@
                         {
                             global : 1,
                             ambient : [.1,.1,.1],
-                            diffuse : [.7, .7, .7],
+                            diffuse : [.9, .9, .9],
                             specular : [.5, .5, .5],
                             position : [.0, 10.0, .0]
                         }
-                    ]
+                    ],
+                    "programIndecies" : ["3dscene"]
                 },
-                // {
-                //     "class": GaussianBlurFilter,
-                //     programIndex : "gauss",
-                //     R : 20
-                //
-                // }
+                {
+                    "class"  : Snapshot,
+                    "program" : ["3dscene"]
+                },
             ]);
 
             jwgl.init();
@@ -176,6 +238,6 @@
     </script>
 </head>
 <body onload="go()">
-    <canvas width="800" height="600" id="glow"></canvas>
+    <canvas width="800" height="600" id="glow" tabindex="-1"></canvas>
 </body>
 </html>

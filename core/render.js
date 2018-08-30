@@ -9,7 +9,8 @@ function Render(opts){
 
     var program = options.program,
         gl = options.gl,
-        el = options.el;
+        el = options.el,
+        data = options.data;
 
     if( document.getElementById(el) !== null){
         options.width = parseFloat(options.width || document.getElementById(el).width);
@@ -27,7 +28,8 @@ function Render(opts){
     this.getProgram = function(){ return program; };
     this.getEL = function(){ return el; };
     this.getGL = function(){ return gl; };
-    this.getData = function() { return options.data; };
+    this.getData = function() { return data; };
+    this.setData = function(newData) { data = newData; };
     this.getVShader = function(){ return program.vertex; };
     this.getFShader = function(){ return program.fragment; };
 }
@@ -173,14 +175,17 @@ Render.prototype.bufferTextureInit = function(info){
  * every object to be rendered via processElement method
  */
 Render.prototype.process = function(){
-    if(this.getConfig().renderToFrame)
-        this.frameOn();
-
 
     var gl = this.getGL(),
         data = this.getData(),
         c = this.getConfig();
+
     gl.useProgram(this.getProgram().instance);
+
+    if(this.getConfig().renderToFrame)
+        this.frameOn();
+
+
     this.raiseEvent("beforeProcess");
 
     this.preProcess();
@@ -231,8 +236,8 @@ Render.prototype.processElement = function(data){
         gl = this.getGL();
 
     this.raiseEvent("beforeProcessElement", data);
-    gl.enableVertexAttribArray(vertex.position);
     gl.bindBuffer(gl.ARRAY_BUFFER, data.vertices);
+    gl.enableVertexAttribArray(vertex.position);
     gl.vertexAttribPointer(vertex.position, data.verticesPerItem, gl.FLOAT, false, 0, 0);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, data.indices);
@@ -248,6 +253,14 @@ function Render2D(opts){
 
 Render2D.prototype = new Render;
 Render2D.prototype.constructor = Render2D;
+
+Render2D.prototype.preProcess = function() {
+    Render.prototype.preProcess.call(this);
+
+    var gl = this.getGL();
+    if(gl.isEnabled(gl.DEPTH_TEST))
+        gl.disable(gl.DEPTH_TEST);
+};
 
 function Render3D(opts){
 
@@ -299,6 +312,14 @@ Render3D.prototype.initWindow = function(w, h){
 Render3D.prototype.preProcess = function(){
 
     Render.prototype.preProcess.call(this);
+
+    var gl = this.getGL();
+    if(!gl.isEnabled(gl.DEPTH_TEST)){
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LESS);
+    }
+
+    gl.clear( gl.DEPTH_BUFFER_BIT );
 
     var lookAt = this.getConfig().lookAt;
     this.modelViewMatrix.manipulate("identity");

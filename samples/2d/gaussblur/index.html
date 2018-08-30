@@ -27,6 +27,7 @@
 <script type="application/javascript">
     var jwgl = null;
         jwgl = new jWGL("gauss-blur", {
+            // ticksLimit : 10,
             // debugLibrary  : "../../../node_modules/webgl-debug/index.js",
             programs : {
                 "main" : {
@@ -43,6 +44,18 @@
                 }
             },
             render : {
+                "blur" :  {
+                    class : Render2D,
+                    programIndex : "blur",
+                    // events : {
+                    //     "beforeProcessElement" : function(o, data) {
+                    //             var gl = o.getGL(),
+                    //                 shader = o.getFShader();
+                    //
+                    //             gl.uniform4fv(shader.color, [1.0, 1.0,  .0, 1.0]);
+                    //     }
+                    // }
+                },
                 "main":{
                     class : Render2D,
                     programIndex : "main",
@@ -62,7 +75,7 @@
                 }
             },
             data : [
-                new Plane(2.0, 2.0, 5, 5, {
+                new Plane(2.0, 2.0/*, 5, 5*/, {
                     texture : [
                         {
                             url : 'webgl.png'
@@ -77,21 +90,31 @@
                 },
                 {
                     "class" : GaussianBlurFilter,
-                    programIndex : "blur",
+                    // programIndex : "blur",
+                    render : "blur",
                     R : 20
                 },
-                // {
-                //     "class" : Snapshot,
-                //     "program" : ["gaussianVBlurProgram"]
-                // }
+                {
+                    "class" : Snapshot,
+                    "program" : ["blur"]
+                }
             ],
             events : {
+
                 "beforeLoadShaders" : function(object, programIndex, vertex, fragment){
-                    if(programIndex !== 'main') return;
+                    if(programIndex === 'blur') {
+                        // fragment.setVariable("color", {location:"uniform", type:"vec4"});
+                        // fragment.setColorExpression("color");
+                    }
+                    else if(programIndex === 'main') {
 
-                    fragment.setVariable("gaussTexture", {location:"uniform", type : "sampler2D"});
+                        fragment.setVariable("gaussTexture", {location:"uniform", type : "sampler2D"});
 
-                    fragment.setColorExpression("texture2D(gaussTexture,vTexture)");
+                        fragment.setColorExpression("texture2D(gaussTexture,vTexture)");
+                    }
+
+                    return ;
+
                 }
             }
         });

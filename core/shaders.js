@@ -573,39 +573,11 @@ var SimpleVertexShader = {
         return {
             class: VertexCompositeShader,
             variables: {
-                //move it to 3d version
-                // "projectionMatrix" : {
-                //     location : "uniform",
-                //     type : "mat4"
-                // },
-                // "modelViewMatrix" : {
-                //     location : "uniform",
-                //     type : "mat4"
-                // },
-                // "modelMatrix" : {
-                //     location : "uniform",
-                //     type : "mat4"
-                // },
                 "position": {
                     location: "attribute",
                     type: "vec3"
                 },
             },
-            // functions : {
-            //     "main" : {
-            //         "returnType" : "void",
-            //         "expressions" : [
-            //             new Expression({elements:["modelMatrix", "vec4(position, 1.0)"], suffix : ";", prefix : "vec4 modelPosition = ", "operator" : "*"}),
-            //             new Expression({elements:["modelViewMatrix", "modelPosition"], suffix : ";", prefix : "vec4 modelViewPosition = ", "operator" : "*"}),
-            //         ]
-            //     }
-            // },
-            // position : [
-            //     new Expression({
-            //             elements : ["projectionMatrix", "modelViewPosition" ],
-            //             operator :"*"
-            //         })
-            // ]
             position: [
                 new Expression({
                     elements: ["vec4(position, 1.0)"]

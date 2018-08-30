@@ -39,7 +39,7 @@ function Texture(options){
     this.getFlipY = function() { return flipY};
 
     this._default = null;//default texture that will be bounded to each object
-    this._maxTexCount = 0; // max texture from all objects. That flag will load that amount of default textures
+    this._maxTexCount = options.maxTexCount || 0; // max texture from all objects. That flag will load that amount of default textures
 }
 
 Texture.prototype = new WGLModule;
@@ -114,7 +114,7 @@ Texture.prototype.initMaxTexCount = function(object) {
 };
 
 Texture.prototype.eventAfterInitRenders = function(object){
-    if(this._maxTexCount === 0) return ;
+    // if(this._maxTexCount === 0) return ;
 
     var renders = object.getRender(),
         programIndecies = this.getProgramIndecies();
@@ -126,18 +126,26 @@ Texture.prototype.eventAfterInitRenders = function(object){
          * afterProcessElement event will make it for u. It will check for textureCount,
          * so don't mind
          */
+        // console.log(r);
         renders[r].addListener("afterProcessElement", this.afterProcessElement, this);
 
         if(!inArray(programIndecies, renders[r].getConfig().programIndex)) continue;
         renders[r].addListener("beforeProcessElement", this.beforeProcessElement, this);      
     }
+
+    // throw "stop";
 };
 
 Texture.prototype.eventAfterInitRenderElement = function(object, data){
-    if(this._maxTexCount == 0) return ;
+    // if(this._maxTexCount == 0) return ;
 
 //    if(!inArray(this.getProgramIndecies(), object.getConfig().programIndex)) return;
-    data.textures = object.registerBuffer(new Float32Array(data.textures), object.gl.ARRAY_BUFFER);    
+    this.registerTextureBuffer(object, data);
+};
+
+Texture.prototype.registerTextureBuffer = function(jwgl, data)
+{
+    data.textures = jwgl.registerBuffer(new Float32Array(data.textures), jwgl.gl.ARRAY_BUFFER);
 };
 
 Texture.prototype.bindTexture = function(object, variable, texture){
@@ -191,14 +199,17 @@ Texture.prototype.beforeProcessElement = function(object, data){
     }
 
     if(data.texturesPerItem !== 0){
-        gl.bindBuffer(gl.ARRAY_BUFFER, data.textures);
-        gl.enableVertexAttribArray(vertex.texture);
-        gl.vertexAttribPointer(vertex.texture, data.texturesPerItem, gl.FLOAT, false, 0, 0);
+        this.applyTextureAttribute(gl, data, vertex);
     }
 
     return true;
 };
 
+Texture.prototype.applyTextureAttribute = function(gl, data, vertex){
+    gl.bindBuffer(gl.ARRAY_BUFFER, data.textures);
+    gl.enableVertexAttribArray(vertex.texture);
+    gl.vertexAttribPointer(vertex.texture, data.texturesPerItem, gl.FLOAT, false, 0, 0);
+};
 
 Texture.prototype.afterProcessElement = function(object, data){
 //    console.log(1);
@@ -254,8 +265,7 @@ Texture.prototype.eventBeforeLoadShaders = function(object, programIndex, vertex
 
     this.initMaxTexCount(object);
 
-    if(this._maxTexCount == 0) return ;
-
+    // if(this._maxTexCount == 0) return ;
 
     if(!inArray(this.getProgramIndecies(), programIndex)) return;
 

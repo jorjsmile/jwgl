@@ -176,36 +176,63 @@ Points.prototype.constructor = Points;
 BoundingBox.prototype = new Shape();
 BoundingBox.prototype.constructor = BoundingBox;
 
-function Plane(w, h, segments, sections, info){
+function Plane(w, h,
+               /*, segments, sections, */info){
     Shape.call(this, info);
     
-    segments = segments || 5;
-    sections = sections || 5;
-    w = w || 3;
-    h = h || w;
-    
-    var xStep = w/sections,
-        yStep = h/segments,
-        startX = -w/ 2,
-        startY = -h/2;
-    for( var i = 0; i < (segments+1)*(sections+1); i++){        
-        var x = startX + i%(sections+1)*xStep;
-        var y = startY + parseInt(i/(sections+1))*yStep;
-        this.vertices.push( x, y, .0 );
-        this.normals.push( .0, .0, 1.0 );
-        this.textures.push( (x-startX)/w,  (h+y+startY)/h );
+//     segments = segments || 5;
+//     sections = sections || 5;
+//     w = w || 3;
+//     h = h || w;
+//
+//     var xStep = w/sections,
+//         yStep = h/segments,
+//         startX = -w/ 2,
+//         startY = -h/2;
+//     for( var i = 0; i < (segments+1)*(sections+1); i++){
+//         var x = startX + i%(sections+1)*xStep;
+//         var y = startY + parseInt(i/(sections+1))*yStep;
+//         this.vertices.push( x, y, .0 );
+//         this.normals.push( .0, .0, 1.0 );
+//         this.textures.push( (x-startX)/w,  (h+y+startY)/h );
+//
+//         if(i < (segments)*(sections+1) && (i+1)%(sections+1) != 0){
+// //            var currSeg = i*(sections+1);
+//             var counter = i%(sections+1);
+//             var nextSeg = (parseInt(i/(sections+1))+1)*(sections+1);
+//             this.indices.push(
+//                 nextSeg+counter,i+1,i,
+//                 nextSeg+counter,nextSeg+counter+1,  i+1
+//             );
+//             }
+//
+//     }
+    this.vertices = [
+        -w/2, -h/2, .0,
+        w/2, -h/2, .0,
+        -w/2, h/2, .0,
+        w/2, h/2, .0
+    ];
 
-        if(i < (segments)*(sections+1) && (i+1)%(sections+1) != 0){
-//            var currSeg = i*(sections+1);
-            var counter = i%(sections+1);
-            var nextSeg = (parseInt(i/(sections+1))+1)*(sections+1);
-            this.indices.push(
-                nextSeg+counter,i+1,i,
-                nextSeg+counter,nextSeg+counter+1,  i+1
-            );
-            }
+    this.textures = [
+        .0, .0,
+        1.0, .0,
+        .0, 1.0,
+        1.0, 1.0
+    ];
 
-    }
+    this.normals = [
+        .0, .0, 1.0,
+        .0, .0, 1.0,
+        .0, .0, 1.0,
+        .0, .0, 1.0
+    ];
+
+    this.indices = [
+        0, 2, 1,
+        1, 2, 3
+    ];
+
     this.verticesPerItem = 3;
     this.texturesPerItem = 2;
     this.normalsPerItem = 3;
