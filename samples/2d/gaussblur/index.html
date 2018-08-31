@@ -46,15 +46,7 @@
             render : {
                 "blur" :  {
                     class : Render2D,
-                    programIndex : "blur",
-                    // events : {
-                    //     "beforeProcessElement" : function(o, data) {
-                    //             var gl = o.getGL(),
-                    //                 shader = o.getFShader();
-                    //
-                    //             gl.uniform4fv(shader.color, [1.0, 1.0,  .0, 1.0]);
-                    //     }
-                    // }
+                    programIndex : "blur"
                 },
                 "main":{
                     class : Render2D,
@@ -70,8 +62,6 @@
                             return true;
                         }
                     }
-                    // renderToFrame : true,
-//                            loop : false
                 }
             },
             data : [
@@ -90,7 +80,6 @@
                 },
                 {
                     "class" : GaussianBlurFilter,
-                    // programIndex : "blur",
                     render : "blur",
                     R : 20
                 },
@@ -102,11 +91,7 @@
             events : {
 
                 "beforeLoadShaders" : function(object, programIndex, vertex, fragment){
-                    if(programIndex === 'blur') {
-                        // fragment.setVariable("color", {location:"uniform", type:"vec4"});
-                        // fragment.setColorExpression("color");
-                    }
-                    else if(programIndex === 'main') {
+                    if(programIndex === 'main') {
 
                         fragment.setVariable("gaussTexture", {location:"uniform", type : "sampler2D"});
 

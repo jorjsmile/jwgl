@@ -10,6 +10,7 @@ function Rotate(options){
         rModelViewMatrix = mat4.clone(render.modelViewMatrix.getMatrix());
 //        console.log(_this.xAngle, _this.yAngle);
         _this.makeRotation(rModelViewMatrix);
+        _this.applyRotation(render);
         _this.raiseEvent("afterPrepareRotation");
     };
     
@@ -19,8 +20,8 @@ function Rotate(options){
     };
     
     this.applyRotation = function(render, index){
-        var object = render.getData()[index];
-        if(object.moduleRotate === false) return true;
+        // var object = render.getData()[index];
+        // if(object.moduleRotate === false) return true;
 
         render.modelViewMatrix.setMatrix(rModelViewMatrix);        
         _this.raiseEvent("afterApplyRotation");
@@ -89,7 +90,7 @@ Rotate.prototype.eventAfterInitRenders = function(object){
          || !(renders[r] instanceof Render3D))
             continue;
         renders[r].addListener("beforeDrawElements", this.prepareRotation);
-        renders[r].addListener("beforeDrawElement", this.applyRotation);
+        // renders[r].addListener("beforeDrawElement", this.applyRotation);
         renders[r].addListener("afterDrawElements", this.clearRotation);
     }
 };

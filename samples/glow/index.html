@@ -27,6 +27,7 @@
     <script  type="text/javascript" src="../../core/modules/filters.js"></script>
     <script  type="text/javascript" src="../../core/modules/filters/gaussian.js"></script>
     <script  type="text/javascript" src="../../core/modules/snapshot.js"></script>
+    <script  type="text/javascript" src="../../core/modules/zoom.js"></script>
     <script>
         var jwgl = null;
         var spheresDist = 5,
@@ -220,17 +221,47 @@
                         {
                             global : 1,
                             ambient : [.1,.1,.1],
-                            diffuse : [.9, .9, .9],
+                            diffuse : [.2, .2, .2],
                             specular : [.5, .5, .5],
                             position : [.0, 10.0, .0]
+                        },
+                        {
+                            ambient : [.1,.1,.1],
+                            diffuse : [1.0, .0, .0],
+                            specular : [.0, .0, .0],
+                            position : [.0, 0.0, -spheresDist]
+                        },
+                        {
+                            ambient : [.1,.1,.1],
+                            diffuse : [1.0, 1.0, .0],
+                            specular : [.0, .0, .0],
+                            // specular : [.5, .5, .5],
+                            position : [.0, 0.0, spheresDist]
+                        },
+                        {
+                            ambient : [.1,.1,.1],
+                            diffuse : [.0, 1.0, .0],
+                            specular : [.0, .0, .0],
+                            position : [spheresDist, 0.0, .0]
+                        },
+                        {
+                            ambient : [.1,.1,.1],
+                            diffuse : [.0, .0, 1.0],
+                            specular : [.0, .0, .0],
+                            position : [-spheresDist, 0.0, .0]
                         }
+
                     ],
                     "programIndecies" : ["3dscene"]
                 },
                 {
                     "class"  : Snapshot,
-                    "program" : ["3dscene"]
+                    "program" : ["gaussScene"]
                 },
+                {
+                    "class" : Zoom,
+                    "programs" : ["3dscene", "gaussScene"]
+                }
             ]);
 
             jwgl.init();
